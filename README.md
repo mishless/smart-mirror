@@ -18,4 +18,5 @@ Follow the steps below in order to setup the project.
 9. After it finished it will generate two files: b2.exe and bjam.exe.
 10. Run b2.exe.
 11. Run bjam.exe.
-12. Pray and try to build. May the force be with you.
+12. In the propterties set in "Configuration Properties" --> "Debugging" --> "Enviroment" --> PATH=$(PTHREAD_DIR)\dll\x64;%PATH%
+13. Pray and try to build. May the force be with you.
