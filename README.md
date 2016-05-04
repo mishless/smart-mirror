@@ -14,9 +14,9 @@ Follow the steps below in order to setup the project.
 6. Create an environment variable OPENCV_DIR that point to PathToOpenCV\Build\x64\vc14, where PathToOpenCV is the path to where you unzipped OpenCV.
 6. Create an environment variable BOOST_DIR that points to where you unzipped it e.g. C:\Boost.
 7. Create an environment variable PTHREAD_DIR that points to PathToPthread\Pre-built.2, where PathToPthread is the path to where you unzipped pthreads files.
-8. In the general Boost directory search for a bootstrap.bat script and execute it.
-9. After it finished it will generate two files: b2.exe and bjam.exe.
-10. Run b2.exe.
-11. Run bjam.exe.
-12. In the project propterties set in "Configuration Properties" --> "Debugging" --> "Enviroment" --> PATH=$(PTHREAD_DIR)\dll\x64;%PATH%
+8. In the project propterties set in "Configuration Properties" --> "Debugging" --> "Enviroment" --> PATH=$(PTHREAD_DIR)\dll\x64;%PATH%
+9. In the general Boost directory search for a bootstrap.bat script and execute it.
+10. After it finished it will generate two files: b2.exe and bjam.exe.
+11. Run b2.exe.
+12. Run bjam.exe.
 13. Pray and try to build. May the force be with you.
