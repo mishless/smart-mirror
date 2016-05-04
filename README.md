@@ -3,6 +3,7 @@
 Smart Mirror project combines image processing techniques and machine learning approaches in onrder to provide functionality for face detection and tracking, face recogntion and authentication as well as non-invasive extraction of heartbeat, inter-bit-interval, respiration rate, blood pressure and drawsiness. More details on the implementation are coming soon. 
 
 In order to setup the project the following steps need to be followed:
+
 1. Visual Studio 2015 IDE should be installed prior to every other step.
 2. Clone the Smart Mirror project and open it in Visual Studio
 3. Download and install [OpenCV](https://sourceforge.net/projects/opencvlibrary/?source=top3_dlp_t5) simply by unzipping it somewhere in the filesystem. Remember where!
