@@ -67,12 +67,21 @@ void *trackAndDetect(void *buffers) {
 		Mat image = rawFramesBuffer->front()->getMatrix();
 		rawFramesBuffer->pop_front();
 		// Load Face cascade (.xml file)
-		CascadeClassifier face_cascade;
-		face_cascade.load("E:\\Development\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt2.xml");
-
+		CascadeClassifier face_cascade; 
+		String boostLibraryPath;
+		char* buf = 0;
+		size_t sz = 0;
+		if (_dupenv_s(&buf, &sz, "OPENCV_DIR") == 0)
+		{
+			boostLibraryPath = (String)buf;
+			free(buf);
+		}
+		face_cascade.load(boostLibraryPath + "/../../../sources/data/haarcascades/haarcascade_frontalface_alt2.xml");
 
 		// Detect faces
 		std::vector<Rect> faces;
+		Rect rect;
+		faces.push_back(rect);
 		face_cascade.detectMultiScale(image, faces, 1.3, 3);
 		if (faces.size() != 0) {
 			faceDetected = true;
