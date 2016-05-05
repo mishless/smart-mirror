@@ -10,7 +10,7 @@ Follow the steps below in order to setup the project.
 2. Clone the Smart Mirror project and open it in Visual Studio.
 3. Download and install [OpenCV](https://sourceforge.net/projects/opencvlibrary/?source=top3_dlp_t5) simply by unzipping it somewhere in the filesystem. Remember where!
 4. Download and install [Boost](https://sourceforge.net/projects/boost/files/boost/1.60.0/) libraries simply by unzipping it somewhere in the filesystem. Remember where!
-5. Download and install [pthreads](ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-2-9-1-release.zip) library for Windows simply by unzipping it somewhere in the filesystem. Remember where!
+5. Download and install [pthreads](https://www.sourceware.org/pthreads-win32/) library for Windows simply by unzipping it somewhere in the filesystem. Remember where!
 6. Create an environment variable OPENCV_DIR that point to PathToOpenCV\Build\x64\vc14, where PathToOpenCV is the path to where you unzipped OpenCV.
 6. Create an environment variable BOOST_DIR that points to where you unzipped it e.g. C:\Boost.
 7. Create an environment variable PTHREAD_DIR that points to PathToPthread\Pre-built.2, where PathToPthread is the path to where you unzipped pthreads files.
