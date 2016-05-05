@@ -41,9 +41,63 @@ void *extractParameters(void *frameBuffer) {
 	return 0;
 }
 
-void *trackAndDetect(void *frameBuffer) {
+void *trackAndDetect(void *buffers) {
 	// Here goes the code that gets a frame and tracks/detects
 	// This will be executed by another thread
+	bool faceDetected = false;
+	FrameBuffer* rawFramesBuffer = ((FrameBuffer**)buffers)[0];
+	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
+	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
+	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
+	if (!faceDetected) {
+		// Detect a face
+	}
+	else {
+		// Detect hands and eyes
+	}
+	while (true) {
+		if (rawFramesBuffer->size() == 0) {
+			continue;
+		}
+		if (faceDetected) {
+			continue;
+		}
+		std::cout << rawFramesBuffer->size() << std::endl;
+		// Get the next frame from raw buffer
+		Mat image = rawFramesBuffer->front()->getMatrix();
+		rawFramesBuffer->pop_front();
+		// Load Face cascade (.xml file)
+		CascadeClassifier face_cascade; 
+		String boostLibraryPath;
+		char* buf = 0;
+		size_t sz = 0;
+		if (_dupenv_s(&buf, &sz, "OPENCV_DIR") == 0)
+		{
+			boostLibraryPath = (String)buf;
+			free(buf);
+		}
+		face_cascade.load(boostLibraryPath + "/../../../sources/data/haarcascades/haarcascade_frontalface_alt2.xml");
+
+		// Detect faces
+		std::vector<Rect> faces;
+		Rect rect;
+		faces.push_back(rect);
+		face_cascade.detectMultiScale(image, faces, 1.3, 3);
+		if (faces.size() != 0) {
+			faceDetected = true;
+		}
+		// Draw circles on the detected faces
+		for (int i = 0; i < faces.size(); i++)
+		{
+			Point center(faces[i].x + faces[i].width*0.5, faces[i].y + faces[i].height*0.5);
+			ellipse(image, center, Size(faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar(255, 0, 255), 4, 8, 0);
+		}
+		imshow("Detected Face", image);
+		waitKey(1);
+	}
+
+	//Process frames from raw frames buffer and put the result in processed frames buffer
+
 	pthread_exit(NULL);
 	return 0;
 }
@@ -77,13 +131,18 @@ void *collectFrames(void *frameBuffer) {
 
 int main(int argc, char* argv[])
 {
-	FrameBuffer frameBuffer{ MAX_BUFFER_SIZE };
+	FrameBuffer rawFramesBuffer{ MAX_BUFFER_SIZE };
+	FrameBuffer faceBuffer{ MAX_BUFFER_SIZE };
+	FrameBuffer eyesBuffer{ MAX_BUFFER_SIZE };
+	FrameBuffer handsBuffer{ MAX_BUFFER_SIZE };
+
+	FrameBuffer* buffers[4]{ &rawFramesBuffer , &faceBuffer, &eyesBuffer, &handsBuffer };
 	Thread frameBufferThread;
 	Thread detectAndTrackThread;
 	Thread extractParametersThread;
-	pthread_create(&frameBufferThread, NULL, collectFrames, &frameBuffer);
-	pthread_create(&detectAndTrackThread, NULL, trackAndDetect, &frameBuffer);
-	pthread_create(&extractParametersThread, NULL, extractParameters, &frameBuffer);
+	pthread_create(&frameBufferThread, NULL, collectFrames, &rawFramesBuffer);
+	pthread_create(&detectAndTrackThread, NULL, trackAndDetect, &buffers);
+	//pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
 	while (true) {
 
 	}

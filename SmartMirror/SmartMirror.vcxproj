@@ -160,7 +160,6 @@
   <ItemGroup>
     <ClCompile Include="frame.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="main-for.cpp" />
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
