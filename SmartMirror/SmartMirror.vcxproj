@@ -74,7 +74,7 @@
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(OPENCV_DIR)\..\..\include;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -113,7 +113,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(BOOST_DIR)\stage\lib;$(PTHREAD_DIR)\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world310d.lib;opencv_world310.lib;pthreadVC2.lib</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world310.lib;opencv_world310d.lib;pthreadVC2.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -154,15 +154,17 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(BOOST_DIR)\stage\lib;$(PTHREAD_DIR)\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world310d.lib;opencv_world310.lib;pthreadVC2.lib</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world310.lib;opencv_world310d.lib;pthreadVC2.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="detector.cpp" />
     <ClCompile Include="frame.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="detector.h" />
     <ClInclude Include="frame.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="main.h" />

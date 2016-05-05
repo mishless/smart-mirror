@@ -1,12 +1,12 @@
 #include "frame.h"
 
-Frame::Frame(cv::Mat frameMatrix, long long int frameTimestamp)
+Frame::Frame(Mat frameMatrix, long long int frameTimestamp)
 {
 	matrix = frameMatrix;
 	timestamp = frameTimestamp;
 }
 
-void Frame::setMatrix(cv::Mat frameMatrix)
+void Frame::setMatrix(Mat frameMatrix)
 {
 	matrix = frameMatrix;
 }

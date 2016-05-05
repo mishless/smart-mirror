@@ -1,7 +1,12 @@
+#ifndef __TIMER_H_INCLUDED__
+#define __TIMER_H_INCLUDED__
+
 #include <boost\date_time\posix_time\posix_time.hpp>
 
-typedef boost::posix_time::ptime Time;
-typedef boost::posix_time::time_duration TimeDuration;
+using namespace boost;
+
+typedef posix_time::ptime Time;
+typedef posix_time::time_duration TimeDuration;
 
 class Timer {
 public:
@@ -11,3 +16,4 @@ public:
 private:
 	static long long int timestamp;
 };
+#endif

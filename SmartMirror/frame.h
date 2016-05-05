@@ -1,20 +1,25 @@
-// A2DD.h
-#ifndef frame_h
-#define frame_h
-#ifndef core_h
+#ifndef __FRAME_H_INCLUDED__
+#define __FRAME_H_INCLUDED__
+
 #include <opencv2\core\core.hpp>
-#endif
+#include <boost\circular_buffer.hpp>
+
+using namespace cv;
+using namespace boost;
 
 class Frame
 {
 public:
-	void setMatrix(cv::Mat frameMatrix);
-	cv::Mat getMatrix(void);
+	void setMatrix(Mat frameMatrix);
+	Mat getMatrix(void);
 	void setTimestamp(long long int frameTimestamp);
 	long long int getTimestamp(void);
-	Frame(cv::Mat frameMatrix, long long int frameTimestamp);
+	Frame(Mat frameMatrix, long long int frameTimestamp);
 private:
-	cv::Mat matrix;
+	Mat matrix;
 	long long int timestamp;
 };
+
+typedef circular_buffer_space_optimized<Frame*> FrameBuffer;
+
 #endif

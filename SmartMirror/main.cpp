@@ -1,5 +1,7 @@
+#include "detector.h"
 #include "main.h"
 
+using namespace std;
 using namespace cv;
 
 void *extractParameters(void *frameBuffer) {
@@ -44,56 +46,98 @@ void *extractParameters(void *frameBuffer) {
 void *trackAndDetect(void *buffers) {
 	// Here goes the code that gets a frame and tracks/detects
 	// This will be executed by another thread
-	bool faceDetected = false;
+	State state = NO_FACE_DETECTED;
 	FrameBuffer* rawFramesBuffer = ((FrameBuffer**)buffers)[0];
 	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
-	if (!faceDetected) {
-		// Detect a face
-	}
-	else {
-		// Detect hands and eyes
-	}
+	Mat mask, frame, previousGreyFrame, warpedFrame;
+	vector<Point2f> previousPoints, points;
+	vector<uchar> status;
+	vector<float> errors;
+	Mat nrt33, newRigidTransform, rigidTransform = Mat::eye(3, 3, CV_32FC1);
+	
+	Mat invTrans;
+	Detector detector;
+	detector.initialize();
+	std::vector<Rect> faces;
 	while (true) {
 		if (rawFramesBuffer->size() == 0) {
+			//std::cout << "track-and-detect-thread: buffer is empty." << std::endl;
 			continue;
 		}
-		if (faceDetected) {
-			continue;
-		}
-		std::cout << rawFramesBuffer->size() << std::endl;
-		// Get the next frame from raw buffer
-		Mat image = rawFramesBuffer->front()->getMatrix();
-		rawFramesBuffer->pop_front();
-		// Load Face cascade (.xml file)
-		CascadeClassifier face_cascade; 
-		String boostLibraryPath;
-		char* buf = 0;
-		size_t sz = 0;
-		if (_dupenv_s(&buf, &sz, "OPENCV_DIR") == 0)
-		{
-			boostLibraryPath = (String)buf;
-			free(buf);
-		}
-		face_cascade.load(boostLibraryPath + "/../../../sources/data/haarcascades/haarcascade_frontalface_alt2.xml");
 
-		// Detect faces
-		std::vector<Rect> faces;
-		Rect rect;
-		faces.push_back(rect);
-		face_cascade.detectMultiScale(image, faces, 1.3, 3);
-		if (faces.size() != 0) {
-			faceDetected = true;
+		// Get the next frame from raw buffer
+		frame = rawFramesBuffer->front()->getMatrix();
+		rawFramesBuffer->pop_front();
+
+		Mat greyFrame;
+		cvtColor(frame, greyFrame, CV_BGR2GRAY);
+
+		RNG rng(12345);
+		switch (state) {
+		case NO_FACE_DETECTED:
+			// Detect faces
+			if (detector.detectFace(&frame, &mask)) {
+				state = FACE_DETECTED;
+			}
+			break;
+		case FACE_DETECTED:
+			const double qualityLevel = 0.01;
+			const double minDistance = 10;
+			const int blockSize = 3;
+			const bool useHarrisDetector = false;
+			const double k = 0.04;
+			if (previousPoints.size() < 200) {
+				goodFeaturesToTrack(greyFrame, points, 500, qualityLevel, minDistance, mask, blockSize, useHarrisDetector, k);
+				for (int i = 0; i < points.size(); i++) {
+					previousPoints.push_back(points[i]);
+				}
+			}
+
+			if (!previousGreyFrame.empty()) {
+				calcOpticalFlowPyrLK(previousGreyFrame, greyFrame, previousPoints, points, status, errors, Size(10, 10));
+				if (countNonZero(status) < status.size() * 0.8) {
+					rigidTransform = Mat::eye(3, 3, CV_32FC1);
+					previousPoints.clear();
+					previousGreyFrame.release();
+					break;
+				}
+				if (previousPoints.size() != points.size()) {
+					cout << "Previous points: " << previousPoints.size() << " Points: " << points.size() << endl;
+					return 0;
+				}
+				newRigidTransform = estimateRigidTransform(previousPoints, points, false);
+				if (newRigidTransform.size() == Size(0, 0)) {
+					rigidTransform = Mat::eye(3, 3, CV_32FC1);
+					previousPoints.clear();
+					previousGreyFrame.release();
+					break;
+				}
+				nrt33 = Mat_<float>::eye(3, 3);
+				newRigidTransform.copyTo(nrt33.rowRange(0, 2));
+				rigidTransform *= nrt33;
+
+				previousPoints.clear();
+				for (int i = 0; i < status.size(); i++) {
+					if (status[i]) {
+						previousPoints.push_back(points[i]);
+					}
+				}
+				for (int i = 0; i < previousPoints.size(); i++) {
+					circle(frame, previousPoints[i], 3, Scalar(0, 0, 255), CV_FILLED);
+				}
+
+			}
+
+			greyFrame.copyTo(previousGreyFrame);
+
+			invTrans = rigidTransform.inv(DECOMP_SVD);
+			warpAffine(frame, warpedFrame, invTrans.rowRange(0, 2), Size());
+			imshow("Test", warpedFrame);
+			waitKey(1);
+			break;
 		}
-		// Draw circles on the detected faces
-		for (int i = 0; i < faces.size(); i++)
-		{
-			Point center(faces[i].x + faces[i].width*0.5, faces[i].y + faces[i].height*0.5);
-			ellipse(image, center, Size(faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar(255, 0, 255), 4, 8, 0);
-		}
-		imshow("Detected Face", image);
-		waitKey(1);
 	}
 
 	//Process frames from raw frames buffer and put the result in processed frames buffer
