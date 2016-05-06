@@ -1,4 +1,5 @@
 #include "detector.h"
+#include "tracker.h"
 #include "main.h"
 
 using namespace std;
@@ -13,11 +14,11 @@ void *extractParameters(void *frameBuffer) {
 		if (localFrameBuffer->size() == 0) {
 			// Well obviously this is not right, is it?
 		}
-		if (false && respirationRateExecuted && (Timer::getTimestamp() % REFRESH_PERIOD*1000 == 0)) {
+		if (false && respirationRateExecuted && (Timer::getTimestamp() % REFRESH_PERIOD * 1000 == 0)) {
 			// Once the respiration rate ran, so now we can just update via the moving window method
 			std::cout << "Refreshing respiration rate..." << std::endl;
 		}
-		if (!respirationRateExecuted && Timer::getTimestamp() >= RESPIRATION_RATE_WINDOW*1000) {
+		if (!respirationRateExecuted && Timer::getTimestamp() >= RESPIRATION_RATE_WINDOW * 1000) {
 			// The respiration rate extraction haven't run yet, so we have to run it
 			int numberOfFrames = localFrameBuffer->size();
 			std::vector<Scalar> blueChannelMean;
@@ -51,15 +52,12 @@ void *trackAndDetect(void *buffers) {
 	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
-	Mat mask, frame, previousGreyFrame, warpedFrame;
-	vector<Point2f> previousPoints, points;
-	vector<uchar> status;
-	vector<float> errors;
-	Mat nrt33, newRigidTransform, rigidTransform = Mat::eye(3, 3, CV_32FC1);
-	
-	Mat invTrans;
+	Mat mask, frame, warpedFrame;
+
 	Detector detector;
 	detector.initialize();
+	Tracker tracker;
+	tracker.initialize();
 	std::vector<Rect> faces;
 	while (true) {
 		if (rawFramesBuffer->size() == 0) {
@@ -71,77 +69,22 @@ void *trackAndDetect(void *buffers) {
 		frame = rawFramesBuffer->front()->getMatrix();
 		rawFramesBuffer->pop_front();
 
-		Mat greyFrame;
-		cvtColor(frame, greyFrame, CV_BGR2GRAY);
-
 		RNG rng(12345);
 		switch (state) {
 		case NO_FACE_DETECTED:
-			// Detect faces
+			// Detect face
 			if (detector.detectFace(&frame, &mask)) {
 				state = FACE_DETECTED;
 			}
 			break;
 		case FACE_DETECTED:
-			const double qualityLevel = 0.01;
-			const double minDistance = 10;
-			const int blockSize = 3;
-			const bool useHarrisDetector = false;
-			const double k = 0.04;
-			if (previousPoints.size() < 200) {
-				goodFeaturesToTrack(greyFrame, points, 500, qualityLevel, minDistance, mask, blockSize, useHarrisDetector, k);
-				for (int i = 0; i < points.size(); i++) {
-					previousPoints.push_back(points[i]);
-				}
-			}
-
-			if (!previousGreyFrame.empty()) {
-				calcOpticalFlowPyrLK(previousGreyFrame, greyFrame, previousPoints, points, status, errors, Size(10, 10));
-				if (countNonZero(status) < status.size() * 0.8) {
-					rigidTransform = Mat::eye(3, 3, CV_32FC1);
-					previousPoints.clear();
-					previousGreyFrame.release();
-					break;
-				}
-				if (previousPoints.size() != points.size()) {
-					cout << "Previous points: " << previousPoints.size() << " Points: " << points.size() << endl;
-					return 0;
-				}
-				newRigidTransform = estimateRigidTransform(previousPoints, points, false);
-				if (newRigidTransform.size() == Size(0, 0)) {
-					rigidTransform = Mat::eye(3, 3, CV_32FC1);
-					previousPoints.clear();
-					previousGreyFrame.release();
-					break;
-				}
-				nrt33 = Mat_<float>::eye(3, 3);
-				newRigidTransform.copyTo(nrt33.rowRange(0, 2));
-				rigidTransform *= nrt33;
-
-				previousPoints.clear();
-				for (int i = 0; i < status.size(); i++) {
-					if (status[i]) {
-						previousPoints.push_back(points[i]);
-					}
-				}
-				for (int i = 0; i < previousPoints.size(); i++) {
-					circle(frame, previousPoints[i], 3, Scalar(0, 0, 255), CV_FILLED);
-				}
-
-			}
-
-			greyFrame.copyTo(previousGreyFrame);
-
-			invTrans = rigidTransform.inv(DECOMP_SVD);
-			warpAffine(frame, warpedFrame, invTrans.rowRange(0, 2), Size());
+			// Track face
+			tracker.trackFace(&frame, &mask, &warpedFrame);
 			imshow("Test", warpedFrame);
 			waitKey(1);
 			break;
 		}
 	}
-
-	//Process frames from raw frames buffer and put the result in processed frames buffer
-
 	pthread_exit(NULL);
 	return 0;
 }

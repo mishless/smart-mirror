@@ -13,9 +13,4 @@ const int RESPIRATION_RATE_WINDOW = 30;
 const int HEARTBEAT_WINDOW = 6;
 const int BLOOD_PRESSURE_WINDOW = 20;
 
-const int MAX_COPRNERS = 100;
-const int QUALITY_LEVEL = 0.3;
-const int MIN_DISTANCE = 7;
-const int BLOCK_SIZE = 7;
-
-enum State {FACE_DETECTED, NO_FACE_DETECTED};
+enum State { FACE_DETECTED, NO_FACE_DETECTED };
