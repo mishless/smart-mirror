@@ -32,6 +32,11 @@ void *extractParameters(void *frameBuffer) {
 				blueChannelMean.push_back(mean(channels[0]));
 				greenChannelMean.push_back(mean(channels[1]));
 				redChannelMean.push_back(mean(channels[2]));
+				Mat m = Mat(numberOfFrames - 2, 1, CV_8UC3, 1);
+				//L = spdiags([e -2*e e], 0:2, numberOfFrames-2, numberOfFrames);
+				int alpha = 10;
+				//int I = speye(numberOfFrames, numberOfFrames);
+				//	int detrendedFrames = (I - inv(I + alpha ^ 2 * (L'*L)))*framesAveraged;
 			}
 			std::cout << "Number of frames: " << numberOfFrames << std::endl;
 			for (int i = 0; i < numberOfFrames; i++) {
@@ -54,10 +59,18 @@ void *trackAndDetect(void *buffers) {
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
 	Mat mask, frame, warpedFrame;
 
-	Detector detector;
-	detector.initialize();
-	Tracker tracker;
-	tracker.initialize();
+	Detector faceDetector;
+	faceDetector.initialize("/../../../sources/data/haarcascades/haarcascade_frontalface_alt2.xml", true);
+	Detector handDetector;
+	handDetector.initialize("hands_final.xml", false);
+	Detector eyesDetector;
+	eyesDetector.initialize("/../../../sources/data/haarcascades/haarcascade_mcs_eyepair_big.xml", true);
+	Tracker faceTracker;
+	faceTracker.initialize();
+	Tracker handTracker;
+	handTracker.initialize();
+	Tracker eyesTracker;
+	eyesTracker.initialize();
 	std::vector<Rect> faces;
 	while (true) {
 		if (rawFramesBuffer->size() == 0) {
@@ -73,15 +86,35 @@ void *trackAndDetect(void *buffers) {
 		switch (state) {
 		case NO_FACE_DETECTED:
 			// Detect face
-			if (detector.detectFace(&frame, &mask)) {
+			if (faceDetector.detect(&frame, &mask)) {
 				state = FACE_DETECTED;
 			}
 			break;
 		case FACE_DETECTED:
 			// Track face
-			tracker.trackFace(&frame, &mask, &warpedFrame);
+			faceTracker.track(&frame, &mask, &warpedFrame);
 			imshow("Test", warpedFrame);
 			waitKey(1);
+			//detect and track hand
+			if (handDetector.isDetected()) {
+				handTracker.track(&frame, &mask, &warpedFrame);
+				imshow("Hand Test", warpedFrame);
+				waitKey(1);
+			}else{
+			/*	if (handDetector.detect(&frame, &mask)) {
+					handDetector.setDetected(true);
+				}*/
+			}
+			//detect and track eyes
+			if (eyesDetector.isDetected()) {
+				//eyesTracker.track(? ? ? );
+				imshow("Eyes test", warpedFrame);
+				waitKey(1);
+			}else{
+				/*if (eyesDetector.detect(? ? )) {
+					eyesDetector.setDetected(true);
+				}*/
+			}
 			break;
 		}
 	}

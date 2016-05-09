@@ -4,7 +4,7 @@ void Tracker::initialize() {
 	rigidTransform = Mat::eye(3, 3, CV_32FC1);
 }
 
-void Tracker::trackFace(Mat* frame, Mat* mask, Mat* outputMask) {
+void Tracker::track(Mat* frame, Mat* mask, Mat* outputMask) {
 	Mat greyFrame;
 	cvtColor((*frame), greyFrame, CV_BGR2GRAY);
 	cout << previousPoints.size() << endl;
