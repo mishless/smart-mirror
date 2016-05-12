@@ -13,7 +13,7 @@ using namespace std;
 class Tracker {
 public:
 	void initialize();
-	void track(Mat* frame, Mat* mask, Mat* outputMask);
+	void trackFace(Mat* frame, Mat* mask, Mat* outputMask);
 private:
 	Mat previousGreyFrame;
 	Mat rigidTransform;

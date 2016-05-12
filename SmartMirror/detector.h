@@ -18,15 +18,14 @@ using namespace cv;
 
 class Detector {
 private:
-	bool objectDetected;
-	vector<Rect> recognizedObjects;
-	CascadeClassifier objectClassifier;
-	
+	vector<Rect> faces;
+	CascadeClassifier faceCascade;
+	CascadeClassifier eyesCascade;
+	CascadeClassifier handsCascade;
 public:
-	void initialize(String xmlPath, bool loadFromOpenCV);
-	bool detect(Mat* frame, Mat* mask);
-	bool isDetected();
-	void setDetected(bool state);
-
+	void initialize();
+	bool detectFace(Mat* frame, Mat* mask);
+	bool detectEyes(Mat* frame, Mat* mask);
+	bool detectHands(Mat* frame, Mat* mask);
 };
 #endif
