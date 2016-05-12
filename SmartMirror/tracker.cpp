@@ -9,7 +9,7 @@ void Tracker::trackFace(Mat* frame, Mat* mask, Mat* outputMask) {
 	cvtColor((*frame), greyFrame, CV_BGR2GRAY);
 	cout << previousPoints.size() << endl;
 	cout << points.size() << endl;
-	if (previousPoints.size() < 50) {
+	if (previousPoints.size() < 20) {
 		previousPoints.clear();
 		goodFeaturesToTrack(greyFrame, points, 500, QUALITY_LEVEL, MIN_DISTANCE, (*mask), BLOCK_SIZE, USE_HARRIS_DETECTOR, K);
 		for (int i = 0; i < points.size(); i++) {
@@ -48,11 +48,10 @@ void Tracker::trackFace(Mat* frame, Mat* mask, Mat* outputMask) {
 		for (int i = 0; i < previousPoints.size(); i++) {
 			circle((*frame), previousPoints[i], 3, Scalar(0, 0, 255), CV_FILLED);
 		}
-
 	}
 
 	greyFrame.copyTo(previousGreyFrame);
 
-	invTrans = rigidTransform.inv(DECOMP_SVD);
-	warpAffine((*frame), (*outputMask), invTrans.rowRange(0, 2), Size());
+	//invTrans = rigidTransform.inv(DECOMP_SVD);
+	//warpAffine((*frame), (*outputMask), invTrans.rowRange(0, 2), Size());
 }

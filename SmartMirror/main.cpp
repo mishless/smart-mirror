@@ -52,36 +52,40 @@ void *trackAndDetect(void *buffers) {
 	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
-	Mat mask, frame, warpedFrame;
+	Mat mask, frame, warpedFrame, face;
 
 	Detector detector;
-	detector.initialize();
-	Tracker tracker;
-	tracker.initialize();
+	detector.initialize("haarcascade_frontalface_alt2.xml", true);
+
+	/*Tracker tracker;
+	tracker.initialize();*/
 	std::vector<Rect> faces;
+
 	while (true) {
+
 		if (rawFramesBuffer->size() == 0) {
-			//std::cout << "track-and-detect-thread: buffer is empty." << std::endl;
 			continue;
 		}
-
-		// Get the next frame from raw buffer
+		
+		/* Get the next frame from raw buffer */
 		frame = rawFramesBuffer->front()->getMatrix();
 		rawFramesBuffer->pop_front();
 
-		RNG rng(12345);
 		switch (state) {
 		case NO_FACE_DETECTED:
 			// Detect face
-			if (detector.detectFace(&frame, &mask)) {
-				state = FACE_DETECTED;
+			if (detector.detect(&frame, &mask)) {
+				frame.copyTo(face, mask);
+				imshow("Face", face);
+				waitKey(1);
+				//state = FACE_DETECTED;
 			}
 			break;
 		case FACE_DETECTED:
 			// Track face
-			tracker.trackFace(&frame, &mask, &warpedFrame);
-			imshow("Test", warpedFrame);
-			waitKey(1);
+			/*racker.trackFace(&frame, &mask, &warpedFrame);
+			imshow("Test", frame);
+			waitKey(1);*/
 			break;
 		}
 	}
