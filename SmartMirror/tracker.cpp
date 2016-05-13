@@ -37,6 +37,11 @@ void Tracker::initializeFeatures(Mat* frame, Rect faceRect) {
 
 bool Tracker::track(Mat* frame, Mat* outputMask) {
 	
+	vector<uchar> status;
+	vector<float> errors;
+	Mat nrt33;
+	Mat newRigidTransform;
+	Mat invTrans;
 	Mat greyFrame;
 	vector<Point2f> points;
 

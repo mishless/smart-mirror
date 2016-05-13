@@ -18,14 +18,10 @@ public:
 	size_t getPointNum();
 private:
 	Mat initialMask;
-	Mat previousGreyFrame;
 	Mat rigidTransform;
-	Mat nrt33;
-	Mat newRigidTransform;
-	Mat invTrans;
+	Mat previousGreyFrame;
 	vector<Point2f> previousPoints;
-	vector<uchar> status;
-	vector<float> errors;
+
 };
 
 const double QUALITY_LEVEL = 0.01;
