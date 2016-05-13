@@ -15,13 +15,14 @@ public:
 	void initialize();
 	bool track(Mat* frame/*, Rect trackedRect*/);
 	void initializeFeatures(Mat* object, Rect faceRect);
+	unsigned int getPointNum();
 private:
 	Mat previousGreyFrame;
 	Mat rigidTransform;
 	Mat nrt33;
 	Mat newRigidTransform;
 	Mat invTrans;
-	vector<Point2f> points, previousPoints;
+	vector<Point2f> previousPoints;
 	vector<uchar> status;
 	vector<float> errors;
 };

@@ -7,6 +7,7 @@ void Tracker::initialize() {
 void Tracker::initializeFeatures(Mat* frame, Rect faceRect) {
 	
 	Mat greyFrame, mask;
+	vector<Point2f> points;
 	previousPoints.clear();
 
 	/* Convert image to grayscale*/
@@ -34,6 +35,7 @@ void Tracker::initializeFeatures(Mat* frame, Rect faceRect) {
 bool Tracker::track(Mat* frame/*, Rect trackedRect*/) {
 	
 	Mat greyFrame;
+	vector<Point2f> points;
 
 	cvtColor((*frame), greyFrame, CV_BGR2GRAY);
 
@@ -52,7 +54,6 @@ bool Tracker::track(Mat* frame/*, Rect trackedRect*/) {
 	}
 
 	newRigidTransform = estimateRigidTransform(previousPoints, points, false);
-	/*cout << "newRigidTransform:" << endl << newRigidTransform << endl;*/
 
 	/* If it is empty, reset everything */
 	if (newRigidTransform.size() == Size(0, 0)) {
@@ -66,10 +67,7 @@ bool Tracker::track(Mat* frame/*, Rect trackedRect*/) {
 	try {
 		nrt33 = Mat::eye(3, 3, CV_32FC1);
 		newRigidTransform.copyTo(nrt33.rowRange(0, 2));
-		cout << "rigidTransform:" << endl << rigidTransform << endl;
-		cout << "nrt33" << endl << nrt33 << endl;
 		rigidTransform *= nrt33;
-		cout << "WORKED!" << endl;
 	}
 	catch (int e) {
 		cout << e << endl;
@@ -89,6 +87,8 @@ bool Tracker::track(Mat* frame/*, Rect trackedRect*/) {
 	for (int i = 0; i < previousPoints.size(); i++) {
 		circle((*frame), previousPoints[i], 3, Scalar(0, 0, 255), CV_FILLED);
 	}
+
+	previousGreyFrame = greyFrame;
 
 	//invTrans = rigidTransform.inv(DECOMP_SVD);
 	//warpAffine((*frame), (*outputMask), invTrans.rowRange(0, 2), Size());
