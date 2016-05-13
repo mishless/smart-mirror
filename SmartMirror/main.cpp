@@ -70,6 +70,7 @@ void *trackAndDetect(void *buffers) {
 		rawFramesBuffer->pop_front();
 
 		if (faceHunter.hunt(&frame, &faceRect, &faceMask)) {
+			face.release();
 			frame.copyTo(face, faceMask);
 			imshow("hunt face", face);
 			waitKey(1);
@@ -136,7 +137,7 @@ int main(int argc, char* argv[])
 	FrameBuffer* buffers[4]{ &rawFramesBuffer , &faceBuffer, &eyesBuffer, &handsBuffer };
 	Thread frameBufferThread;
 	Thread detectAndTrackThread;
-	Thread extractParametersThread;
+	//Thread extractParametersThread;
 	pthread_create(&frameBufferThread, NULL, collectFrames, &rawFramesBuffer);
 	pthread_create(&detectAndTrackThread, NULL, trackAndDetect, &buffers);
 	//pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);

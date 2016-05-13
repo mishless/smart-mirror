@@ -17,6 +17,7 @@ public:
 	void initializeFeatures(Mat* object, Rect faceRect);
 	size_t getPointNum();
 private:
+	Mat initialMask;
 	Mat previousGreyFrame;
 	Mat rigidTransform;
 	Mat nrt33;
