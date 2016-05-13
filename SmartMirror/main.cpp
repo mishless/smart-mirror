@@ -1,6 +1,4 @@
-//#include "hunter.h"
-#include "tracker.h"
-#include "detector.h"
+#include "hunter.h"
 #include "main.h"
 
 using namespace std;
@@ -55,11 +53,8 @@ void *trackAndDetect(void *buffers) {
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
 	Mat mask, frame, warpedFrame, face;
 
-	Detector detector;
-	detector.initialize("haarcascade_frontalface_alt2.xml", true);
-
-	Tracker tracker;
-	tracker.initialize();
+	Hunter faceHunter;
+	faceHunter.initialize("haarcascade_frontalface_alt2.xml", true);
 
 	std::vector<Rect> faces;
 
@@ -75,28 +70,9 @@ void *trackAndDetect(void *buffers) {
 		frame = rawFramesBuffer->front()->getMatrix();
 		rawFramesBuffer->pop_front();
 
-		switch (state) {
-		case NO_FACE_DETECTED:
-			// Detect face
-			if (detector.detect(&frame, &faceRect)) {
-
-				/* Find good features of the face so the tracker can track later */
-				tracker.initializeFeatures(&frame, faceRect);
-
-				state = FACE_DETECTED;
-			}
-			break;
-
-		case FACE_DETECTED:
-			/* Track face */
-
-			if (tracker.track(&frame) == false)
-			{
-				state = NO_FACE_DETECTED;
-			}
-			imshow("Test", frame);
+		if (faceHunter.hunt(&frame, &faceRect)) {
+			imshow("hunt face", frame);
 			waitKey(1);
-			break;
 		}
 	}
 	pthread_exit(NULL);

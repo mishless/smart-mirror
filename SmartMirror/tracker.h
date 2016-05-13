@@ -15,7 +15,7 @@ public:
 	void initialize();
 	bool track(Mat* frame/*, Rect trackedRect*/);
 	void initializeFeatures(Mat* object, Rect faceRect);
-	unsigned int getPointNum();
+	size_t getPointNum();
 private:
 	Mat previousGreyFrame;
 	Mat rigidTransform;

@@ -67,14 +67,16 @@ bool Tracker::track(Mat* frame/*, Rect trackedRect*/) {
 	try {
 		nrt33 = Mat::eye(3, 3, CV_32FC1);
 		newRigidTransform.copyTo(nrt33.rowRange(0, 2));
+		cout << "A: "<< rigidTransform << endl;
+		cout << "B: " << nrt33 << endl;
 		rigidTransform *= nrt33;
 	}
-	catch (int e) {
-		cout << e << endl;
+	catch (...) {
+		//cout << e << endl;
 		cout << "FAILED!" << endl;
 		return false;
 	}
-	int a = 5;
+
 	/* Update previousPoints with newly found points */
 	previousPoints.clear();
 	for (int i = 0; i < status.size(); i++) {
@@ -94,4 +96,8 @@ bool Tracker::track(Mat* frame/*, Rect trackedRect*/) {
 	//warpAffine((*frame), (*outputMask), invTrans.rowRange(0, 2), Size());
 
 	return true;
+}
+
+size_t Tracker::getPointNum() {
+	return previousPoints.size();
 }

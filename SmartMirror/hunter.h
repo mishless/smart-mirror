@@ -21,7 +21,7 @@ public:
 private:
 	Detector detector;
 	Tracker tracker;
-	unsigned int 
+	size_t initialPoints;
 };
 
 
