@@ -19,7 +19,7 @@ void *extractParameters(void *frameBuffer) {
 		}
 		if (!respirationRateExecuted && Timer::getTimestamp() >= RESPIRATION_RATE_WINDOW * 1000) {
 			// The respiration rate extraction haven't run yet, so we have to run it
-			int numberOfFrames = localFrameBuffer->size();
+			size_t numberOfFrames = localFrameBuffer->size();
 			std::vector<Scalar> blueChannelMean;
 			std::vector<Scalar> greenChannelMean;
 			std::vector<Scalar> redChannelMean;
