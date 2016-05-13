@@ -11,6 +11,7 @@ void Hunter::initialize(String xmlPath, bool loadFromOpenCV)
 
 bool Hunter::hunt(Mat * frame, Rect * outputRect, Mat* outputMask)
 {
+	cout << "Points: " << tracker.getPointNum() << "/" << initialPoints << endl;
 	if ((tracker.getPointNum() < ABS_TRESHOLD) || (tracker.getPointNum() < PROP_TRESHOLD * initialPoints)) {
 		/*detect*/
 		if (!detector.detect(frame, outputRect)) {

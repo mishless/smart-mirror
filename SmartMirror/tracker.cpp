@@ -42,7 +42,7 @@ bool Tracker::track(Mat* frame, Mat* outputMask) {
 
 	cvtColor((*frame), greyFrame, CV_BGR2GRAY);
 
-	calcOpticalFlowPyrLK(previousGreyFrame, greyFrame, previousPoints, points, status, errors, Size(300, 300));
+	calcOpticalFlowPyrLK(previousGreyFrame, greyFrame, previousPoints, points, status, errors, Size(50, 50));
 	if (countNonZero(status) < status.size() * 0.8) {
 		rigidTransform = Mat::eye(3, 3, CV_32FC1);
 		previousPoints.clear();
@@ -70,8 +70,6 @@ bool Tracker::track(Mat* frame, Mat* outputMask) {
 	try {
 		nrt33 = Mat::eye(3, 3, CV_32FC1);
 		newRigidTransform.copyTo(nrt33.rowRange(0, 2));
-		cout << "A: "<< rigidTransform << endl;
-		cout << "B: " << nrt33 << endl;
 		rigidTransform *= nrt33;
 	}
 	catch (...) {
@@ -95,10 +93,7 @@ bool Tracker::track(Mat* frame, Mat* outputMask) {
 
 	previousGreyFrame = greyFrame;
 
-	invTrans = rigidTransform.inv(DECOMP_SVD);
-	Mat temp;
-	invertAffineTransform(invTrans.rowRange(0,2), temp);
-	warpAffine(initialMask, (*outputMask), temp, Size());
+	warpAffine(initialMask, (*outputMask), rigidTransform.rowRange(0,2), Size());
 
 	return true;
 }
