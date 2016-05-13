@@ -22,6 +22,6 @@ private:
 	CascadeClassifier objectClassifier;
 public:
 	void initialize(String xmlPath, bool loadFromOpenCV);
-	bool detect(Mat* frame, Mat* mask);
+	bool detect(Mat* frame, Rect* faceRect);
 };
 #endif

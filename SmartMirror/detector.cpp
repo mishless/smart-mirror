@@ -22,9 +22,7 @@ void Detector::initialize(String xmlPath, bool loadFromOpenCV) {
 	}
 }
 
-bool Detector::detect(Mat* frame, Mat* mask) {
-	/* Intialize an empty mask*/
-	(*mask) = Mat::zeros(frame->size(), CV_8U);
+bool Detector::detect(Mat* frame, Rect* faceRect) {
 
 	/* Detect objects and fill recognizedObjects with rectangles*/
 	objectClassifier.detectMultiScale((*frame), recognizedObjects);
@@ -42,8 +40,8 @@ bool Detector::detect(Mat* frame, Mat* mask) {
 	}*/
 
 	/* Fill the output mask with ones where the first object was detected */
-	(*mask)(Rect(recognizedObjects[0].x, recognizedObjects[0].y,
-		         recognizedObjects[0].width, recognizedObjects[0].height)) = 1;
+	(*faceRect) = Rect(recognizedObjects[0].x, recognizedObjects[0].y,
+		               recognizedObjects[0].width, recognizedObjects[0].height);
 
 	return true;
 }

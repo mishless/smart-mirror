@@ -57,9 +57,12 @@ void *trackAndDetect(void *buffers) {
 	Detector detector;
 	detector.initialize("haarcascade_frontalface_alt2.xml", true);
 
-	/*Tracker tracker;
-	tracker.initialize();*/
+	Tracker tracker;
+	tracker.initialize();
+
 	std::vector<Rect> faces;
+
+	Rect faceRect;
 
 	while (true) {
 
@@ -74,18 +77,24 @@ void *trackAndDetect(void *buffers) {
 		switch (state) {
 		case NO_FACE_DETECTED:
 			// Detect face
-			if (detector.detect(&frame, &mask)) {
-				frame.copyTo(face, mask);
-				imshow("Face", face);
-				waitKey(1);
-				//state = FACE_DETECTED;
+			if (detector.detect(&frame, &faceRect)) {
+
+				/* Find good features of the face so the tracker can track later */
+				tracker.initializeFeatures(&frame, faceRect);
+
+				state = FACE_DETECTED;
 			}
 			break;
+
 		case FACE_DETECTED:
-			// Track face
-			/*racker.trackFace(&frame, &mask, &warpedFrame);
+			/* Track face */
+
+			if (tracker.track(&frame) == false)
+			{
+				state = NO_FACE_DETECTED;
+			}
 			imshow("Test", frame);
-			waitKey(1);*/
+			waitKey(1);
 			break;
 		}
 	}
@@ -122,6 +131,26 @@ void *collectFrames(void *frameBuffer) {
 
 int main(int argc, char* argv[])
 {
+
+
+
+
+	//float aData[3][3] = { {1, 0, 0},{0, 1, 0}, {0, 0, 1} };
+	//float bData[3][3] =
+	//	/*{
+	//	{0.99990714, -0.00084443804, 0.35972571},
+	//	{0.00084443804, 0.99990714, -0.2556518 },
+	//	{0, 0, 1} };*/
+	//{ {2,3,4}, {5,6,7}, {8,9,10} };
+	//Mat a(3, 3, CV_32FC1, &aData);
+	//Mat b(3, 3, CV_32FC1, &bData);
+	//cout << "A: " << a << endl;
+	//cout << "B: " << b << endl;
+	//a *= b;
+	//cout << "Result:" << endl << a;
+	//while (1);
+	//return 0;
+
 	FrameBuffer rawFramesBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer faceBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer eyesBuffer{ MAX_BUFFER_SIZE };
