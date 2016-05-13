@@ -51,11 +51,10 @@ void *trackAndDetect(void *buffers) {
 	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
-	Mat mask, frame, warpedFrame, face;
+	Mat mask, frame, warpedFrame, face, faceMask;
 
-	Hunter faceHunter;
+	Hunter faceHunter, handHunter, eyeHunter;
 	faceHunter.initialize("haarcascade_frontalface_alt2.xml", true);
-
 	std::vector<Rect> faces;
 
 	Rect faceRect;
@@ -70,8 +69,9 @@ void *trackAndDetect(void *buffers) {
 		frame = rawFramesBuffer->front()->getMatrix();
 		rawFramesBuffer->pop_front();
 
-		if (faceHunter.hunt(&frame, &faceRect)) {
-			imshow("hunt face", frame);
+		if (faceHunter.hunt(&frame, &faceRect, &faceMask)) {
+			frame.copyTo(face, faceMask);
+			imshow("hunt face", face);
 			waitKey(1);
 		}
 	}

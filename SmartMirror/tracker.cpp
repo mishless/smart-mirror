@@ -32,7 +32,7 @@ void Tracker::initializeFeatures(Mat* frame, Rect faceRect) {
 	rigidTransform = Mat::eye(3, 3, CV_32FC1);
 }
 
-bool Tracker::track(Mat* frame/*, Rect trackedRect*/) {
+bool Tracker::track(Mat* frame, Mat* outputMask) {
 	
 	Mat greyFrame;
 	vector<Point2f> points;
@@ -92,8 +92,8 @@ bool Tracker::track(Mat* frame/*, Rect trackedRect*/) {
 
 	previousGreyFrame = greyFrame;
 
-	//invTrans = rigidTransform.inv(DECOMP_SVD);
-	//warpAffine((*frame), (*outputMask), invTrans.rowRange(0, 2), Size());
+	invTrans = rigidTransform.inv(DECOMP_SVD);
+	warpAffine((*frame), (*outputMask), invTrans.rowRange(0, 2), Size());
 
 	return true;
 }

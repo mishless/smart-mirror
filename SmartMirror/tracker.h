@@ -13,7 +13,7 @@ using namespace std;
 class Tracker {
 public:
 	void initialize();
-	bool track(Mat* frame/*, Rect trackedRect*/);
+	bool track(Mat* frame, Mat* outputMask);
 	void initializeFeatures(Mat* object, Rect faceRect);
 	size_t getPointNum();
 private:
