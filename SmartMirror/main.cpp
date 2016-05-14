@@ -51,11 +51,22 @@ void *trackAndDetect(void *buffers) {
 	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
-	Mat mask, frame, warpedFrame, face, faceMask, imageToShow;
+	Mat mask, frame, warpedFrame, face, faceMask, unflippedFrame;
+	Mat eyes, hand;
 
 	Hunter faceHunter, handHunter, eyesHunter;
-	faceHunter.initialize("haarcascade_frontalface_alt2.xml", true);
-	eyesHunter.initialize("haarcascade_mcs_eyepair_big.xml", true);
+	if (!faceHunter.initialize("haarcascade_frontalface_alt2.xml", true))
+	{
+		while (1);
+	}
+	if (!eyesHunter.initialize("haarcascade_mcs_eyepair_big.xml", true))
+	{
+		while (1);
+	}
+	if (!handHunter.initialize("hands_final.xml", true))
+	{
+		while (1);
+	}
 	std::vector<Rect> faces;
 
 	Rect faceRect;
@@ -67,13 +78,23 @@ void *trackAndDetect(void *buffers) {
 		}
 		
 		/* Get the next frame from raw buffer */
-		frame = rawFramesBuffer->front()->getMatrix();
+		unflippedFrame = rawFramesBuffer->front()->getMatrix();
 		rawFramesBuffer->pop_front();
+		flip(unflippedFrame, frame, 1);
 
 		face.release();
 		if (faceHunter.hunt(&frame, &face)) {
-			flip(face, imageToShow, 1);
-			imshow("hunt face", imageToShow);
+			imshow("Face", face);
+			waitKey(1);
+			if (eyesHunter.hunt(&face, &eyes))
+			{
+				imshow("Eyes", eyes);
+				waitKey(1);
+			}
+		}
+		if (handHunter.hunt(&frame, &hand))
+		{
+			imshow("Hand", hand);
 			waitKey(1);
 		}
 	}

@@ -95,9 +95,9 @@ bool Tracker::track(Mat* frame, Mat* outputMask) {
 	}
 
 	/* Put circles on found points */
-	for (int i = 0; i < previousPoints.size(); i++) {
+	/*for (int i = 0; i < previousPoints.size(); i++) {
 		circle((*frame), previousPoints[i], 3, Scalar(0, 0, 255), CV_FILLED);
-	}
+	}*/
 
 	previousGreyFrame = greyFrame;
 

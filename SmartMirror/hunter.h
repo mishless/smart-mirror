@@ -16,7 +16,7 @@
 
 class Hunter {
 public:
-	void initialize(String xmlPath, bool loadFromOpenCV);
+	bool initialize(String xmlPath, bool loadFromOpenCV);
 	bool hunt(Mat* frame, Mat* outputMask);
 private:
 	Detector detector;

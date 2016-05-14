@@ -21,7 +21,7 @@ private:
 	vector<Rect> recognizedObjects;
 	CascadeClassifier objectClassifier;
 public:
-	void initialize(String xmlPath, bool loadFromOpenCV);
+	bool initialize(String xmlPath, bool loadFromOpenCV);
 	bool detect(Mat* frame, Rect* faceRect);
 };
 #endif

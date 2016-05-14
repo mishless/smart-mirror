@@ -2,11 +2,16 @@
 #define ABS_TRESHOLD 15
 #define PROP_TRESHOLD 0.3
 
-void Hunter::initialize(String xmlPath, bool loadFromOpenCV)
+bool Hunter::initialize(String xmlPath, bool loadFromOpenCV)
 {
-	detector.initialize(xmlPath, loadFromOpenCV);
+	if (!detector.initialize(xmlPath, loadFromOpenCV))
+	{
+		return false;
+	}
 	tracker.initialize();
 	initialPoints = 0;
+
+	return true;
 }
 
 bool Hunter::hunt(Mat * inputFrame, Mat* outputObject)

@@ -1,6 +1,6 @@
 #include "detector.h"
 
-void Detector::initialize(String xmlPath, bool loadFromOpenCV) {
+bool Detector::initialize(String xmlPath, bool loadFromOpenCV) {
 
 	if (loadFromOpenCV == true)
 	{
@@ -14,12 +14,21 @@ void Detector::initialize(String xmlPath, bool loadFromOpenCV) {
 			free(buf);
 		}
 		boostLibraryPath += "\\..\\..\\..\\sources\\data\\haarcascades\\";
-		objectClassifier.load(boostLibraryPath + xmlPath);
+		if (!objectClassifier.load(boostLibraryPath + xmlPath))
+		{
+			cout << "Loading " << boostLibraryPath + xmlPath << " failed!" << endl;
+			return false;
+		}	
 	}
 	else
 	{
-		objectClassifier.load(xmlPath);
+		if (!objectClassifier.load(xmlPath))
+		{
+			cout << "Loading " << xmlPath << " failed!" << endl;
+			return false;
+		}
 	}
+	return true;
 }
 
 bool Detector::detect(Mat* frame, Rect* faceRect) {
