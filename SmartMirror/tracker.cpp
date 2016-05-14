@@ -29,7 +29,7 @@ void Tracker::initializeFeatures(Mat* frame, Rect faceRect) {
 	greyFrame.copyTo(previousGreyFrame);
 
 	/* Save initial mask */
-	lastMask = mask;
+	initialMask = mask;
 
 	/* Initialize */
 	rigidTransform = Mat::eye(3, 3, CV_32FC1);
@@ -72,7 +72,7 @@ bool Tracker::track(Mat* frame, Mat* outputMask) {
 	}
 
 	/* Update rigid trasnform */
-	/*try {
+	try {
 		nrt33 = Mat::eye(3, 3, CV_32FC1);
 		newRigidTransform.copyTo(nrt33.rowRange(0, 2));
 		rigidTransform *= nrt33;
@@ -81,7 +81,7 @@ bool Tracker::track(Mat* frame, Mat* outputMask) {
 		//cout << e << endl;
 		cout << "FAILED!" << endl;
 		return false;
-	}*/
+	}
 
 	/* Update previousPoints with newly found points */
 	previousPoints.clear();
@@ -98,12 +98,19 @@ bool Tracker::track(Mat* frame, Mat* outputMask) {
 
 	previousGreyFrame = greyFrame;
 
-	warpAffine(lastMask, (*outputMask), rigidTransform.rowRange(0,2), Size());
+	warpAffine(initialMask, (*outputMask), rigidTransform.rowRange(0,2), Size());
 
-	lastMask = *outputMask;
 	return true;
 }
 
 size_t Tracker::getPointNum() {
 	return previousPoints.size();
+}
+
+void Tracker::rotate(Mat* inputFrame, Mat* inputMask, Mat * outputFrame)
+{
+	Mat maskedObject, invRigidTransform;
+	(*inputFrame).copyTo(maskedObject, *inputMask);
+	invertAffineTransform(rigidTransform, invRigidTransform);
+	warpAffine(maskedObject, (*outputFrame), invRigidTransform.rowRange(0, 2), Size());
 }

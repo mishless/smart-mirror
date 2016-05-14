@@ -16,8 +16,9 @@ public:
 	bool track(Mat* frame, Mat* outputMask);
 	void initializeFeatures(Mat* object, Rect faceRect);
 	size_t getPointNum();
+	void rotate(Mat* inputFrame, Mat* inputMask, Mat* outputFrame);
 private:
-	Mat lastMask;
+	Mat initialMask;
 	Mat rigidTransform;
 	Mat previousGreyFrame;
 	vector<Point2f> previousPoints;
