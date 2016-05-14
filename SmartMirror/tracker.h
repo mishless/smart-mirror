@@ -11,18 +11,17 @@ using namespace cv;
 using namespace std;
 
 class Tracker {
+private:
+	Mat initialMask;
+	Mat rigidTransform;
+	Mat previousGreyFrame;
+	vector<Point2f> previousPoints;
 public:
 	void initialize();
 	bool track(Mat* frame, Mat* outputMask);
 	void initializeFeatures(Mat* object, Rect faceRect);
 	size_t getPointNum();
 	void rotate(Mat* inputFrame, Mat* inputMask, Mat* outputFrame);
-private:
-	Mat initialMask;
-	Mat rigidTransform;
-	Mat previousGreyFrame;
-	vector<Point2f> previousPoints;
-
 };
 
 const double QUALITY_LEVEL = 0.01;

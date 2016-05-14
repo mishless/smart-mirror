@@ -4,8 +4,28 @@
 using namespace std;
 using namespace cv;
 
-void *extractParameters(void *frameBuffer) {
-	bool respirationRateExecuted = false;
+void *extractParameters(void *buffers) {
+	
+	FrameBuffer* rawFramesBuffer = ((FrameBuffer**)buffers)[0];
+	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
+	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
+	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
+	Mat face;
+	while (1)
+	{
+		/* If there are no new frames, continue */
+		if (rawFramesBuffer->size() == 0) {
+			continue;
+		}
+
+		/* Get the next frame from raw buffer */
+		face = faceBuffer->front()->getMatrix();
+		faceBuffer->pop_front();
+
+		imshow("Face", face);
+		waitKey(1);
+	}
+	/*bool respirationRateExecuted = false;
 	while (true) {
 		// Here goes the code that check if it is time to extract a certain parameter
 		// This will be executed by another thread
@@ -39,7 +59,7 @@ void *extractParameters(void *frameBuffer) {
 			respirationRateExecuted = true;
 		}
 	}
-	pthread_exit(NULL);
+	pthread_exit(NULL);*/
 	return 0;
 }
 
@@ -53,17 +73,14 @@ void *trackAndDetect(void *buffers) {
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
 	Mat mask, frame, warpedFrame, face, faceMask, unflippedFrame;
 	Mat eyes, hand;
+	long long int timeStamp;
 
 	Hunter faceHunter, handHunter, eyesHunter;
-	if (!faceHunter.initialize("haarcascade_frontalface_alt2.xml", true))
+	if (!faceHunter.initialize("haarcascade_frontalface_alt2.xml", true, FACE_W, FACE_H))
 	{
 		while (1);
 	}
-	if (!eyesHunter.initialize("haarcascade_mcs_eyepair_big.xml", true))
-	{
-		while (1);
-	}
-	if (!handHunter.initialize("hands_final.xml", true))
+	if (!eyesHunter.initialize("haarcascade_mcs_eyepair_big.xml", true, EYES_W, EYES_H))
 	{
 		while (1);
 	}
@@ -73,29 +90,33 @@ void *trackAndDetect(void *buffers) {
 
 	while (true) {
 
+		/* If there are no new frames, continue */
 		if (rawFramesBuffer->size() == 0) {
 			continue;
 		}
 		
 		/* Get the next frame from raw buffer */
 		unflippedFrame = rawFramesBuffer->front()->getMatrix();
+		timeStamp = rawFramesBuffer->front()->getTimestamp();
 		rawFramesBuffer->pop_front();
+
+		/* Mirror it so it looks like a mirror */
 		flip(unflippedFrame, frame, 1);
 
+		/* Clean old face so old frames don't appear */
 		face.release();
+
+		/* Find face*/
 		if (faceHunter.hunt(&frame, &face)) {
-			imshow("Face", face);
-			waitKey(1);
+
+			/*Add the face to the face buffer */
+			faceBuffer->push_back(new Frame(face, timeStamp));
+
+			/* Find eyes */
 			if (eyesHunter.hunt(&face, &eyes))
 			{
-				imshow("Eyes", eyes);
-				waitKey(1);
+				eyesBuffer->push_back(new Frame(eyes, timeStamp));
 			}
-		}
-		if (handHunter.hunt(&frame, &hand))
-		{
-			imshow("Hand", hand);
-			waitKey(1);
 		}
 	}
 	pthread_exit(NULL);
@@ -131,26 +152,6 @@ void *collectFrames(void *frameBuffer) {
 
 int main(int argc, char* argv[])
 {
-
-
-
-
-	//float aData[3][3] = { {1, 0, 0},{0, 1, 0}, {0, 0, 1} };
-	//float bData[3][3] =
-	//	/*{
-	//	{0.99990714, -0.00084443804, 0.35972571},
-	//	{0.00084443804, 0.99990714, -0.2556518 },
-	//	{0, 0, 1} };*/
-	//{ {2,3,4}, {5,6,7}, {8,9,10} };
-	//Mat a(3, 3, CV_32FC1, &aData);
-	//Mat b(3, 3, CV_32FC1, &bData);
-	//cout << "A: " << a << endl;
-	//cout << "B: " << b << endl;
-	//a *= b;
-	//cout << "Result:" << endl << a;
-	//while (1);
-	//return 0;
-
 	FrameBuffer rawFramesBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer faceBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer eyesBuffer{ MAX_BUFFER_SIZE };
@@ -159,12 +160,12 @@ int main(int argc, char* argv[])
 	FrameBuffer* buffers[4]{ &rawFramesBuffer , &faceBuffer, &eyesBuffer, &handsBuffer };
 	Thread frameBufferThread;
 	Thread detectAndTrackThread;
-	//Thread extractParametersThread;
+	Thread extractParametersThread;
 	pthread_create(&frameBufferThread, NULL, collectFrames, &rawFramesBuffer);
 	pthread_create(&detectAndTrackThread, NULL, trackAndDetect, &buffers);
-	//pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
+	pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
 	while (true) {
-
+		;
 	}
 	return 0;
 }

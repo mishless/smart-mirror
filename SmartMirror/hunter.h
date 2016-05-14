@@ -15,14 +15,17 @@
 #include "tracker.h"
 
 class Hunter {
-public:
-	bool initialize(String xmlPath, bool loadFromOpenCV);
-	bool hunt(Mat* frame, Mat* outputMask);
 private:
+	unsigned int width;
+	unsigned int height;
 	Detector detector;
 	Tracker tracker;
 	size_t initialPoints;
 	Rect initialRect;
+public:
+	bool initialize(String xmlPath, bool loadFromOpenCV,
+		            unsigned int desiredWidth, unsigned int desiredHeight);
+	bool hunt(Mat* frame, Mat* outputMask);
 };
 
 

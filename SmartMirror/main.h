@@ -14,3 +14,9 @@ const int HEARTBEAT_WINDOW = 6;
 const int BLOOD_PRESSURE_WINDOW = 20;
 
 enum State { FACE_DETECTED, NO_FACE_DETECTED };
+
+#define FACE_W 300
+#define FACE_H 300
+
+#define EYES_W 200
+#define EYES_H  40

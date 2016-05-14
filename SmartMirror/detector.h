@@ -15,7 +15,6 @@
 using namespace std;
 using namespace cv;
 
-
 class Detector {
 private:
 	vector<Rect> recognizedObjects;

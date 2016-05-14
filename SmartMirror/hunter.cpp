@@ -2,7 +2,8 @@
 #define ABS_TRESHOLD 15
 #define PROP_TRESHOLD 0.3
 
-bool Hunter::initialize(String xmlPath, bool loadFromOpenCV)
+bool Hunter::initialize(String xmlPath, bool loadFromOpenCV,
+	                    unsigned int desiredWidth, unsigned int desiredHeight)
 {
 	if (!detector.initialize(xmlPath, loadFromOpenCV))
 	{
@@ -11,6 +12,9 @@ bool Hunter::initialize(String xmlPath, bool loadFromOpenCV)
 	tracker.initialize();
 	initialPoints = 0;
 
+	width = desiredWidth;
+	height = desiredHeight;
+
 	return true;
 }
 
@@ -18,6 +22,7 @@ bool Hunter::hunt(Mat * inputFrame, Mat* outputObject)
 {
 	Mat objectMask;
 	Mat rotatedObject;
+	Mat croppedObject;
 
 	if ((tracker.getPointNum() < ABS_TRESHOLD) || (tracker.getPointNum() < PROP_TRESHOLD * initialPoints)) {
 		/*detect*/
@@ -29,7 +34,7 @@ bool Hunter::hunt(Mat * inputFrame, Mat* outputObject)
 		initialPoints = tracker.getPointNum();
 		objectMask = Mat::zeros(inputFrame->size(), CV_8U);
 		objectMask(initialRect) = 1;
-		*outputObject = (*inputFrame)(initialRect);
+		croppedObject = (*inputFrame)(initialRect);
 	}
 	else {
 		/*track*/
@@ -37,11 +42,12 @@ bool Hunter::hunt(Mat * inputFrame, Mat* outputObject)
 			return false;
 		}
 		tracker.rotate(inputFrame, &objectMask, &rotatedObject);
-		*outputObject = rotatedObject(initialRect);
+		croppedObject = rotatedObject(initialRect);
 
 	}
 
-
-	
+	/* This is very slow. If you need faster, remove resizing and just return
+	   cropped object :( */
+	resize(croppedObject, *outputObject, Size(width, height));
 	return	true;
 }
