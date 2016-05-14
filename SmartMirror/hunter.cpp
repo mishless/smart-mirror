@@ -25,11 +25,14 @@ bool Hunter::hunt(Mat * inputFrame, Mat* outputObject)
 	Mat croppedObject;
 
 	if ((tracker.getPointNum() < ABS_TRESHOLD) || (tracker.getPointNum() < PROP_TRESHOLD * initialPoints)) {
-		/*detect*/
+
+		/* If we don't have sufficient points, do detectio again */
 		if (!detector.detect(inputFrame, &initialRect)) {
 			return false;
 		}
-		/*find good features to track*/
+
+		/* If detection is successful, identify features that 
+		   will be used later for tracking*/
 		tracker.initializeFeatures(inputFrame, initialRect);
 		initialPoints = tracker.getPointNum();
 		objectMask = Mat::zeros(inputFrame->size(), CV_8U);
@@ -37,11 +40,15 @@ bool Hunter::hunt(Mat * inputFrame, Mat* outputObject)
 		croppedObject = (*inputFrame)(initialRect);
 	}
 	else {
-		/*track*/
+		/* If we have enough points, try tracking */
 		if (!tracker.track(inputFrame, &objectMask)) {			
 			return false;
 		}
+
+		/* Rotate object to original rotation (at time of detection) */
 		tracker.rotate(inputFrame, &objectMask, &rotatedObject);
+
+		/* Cut only the object part of the whole frame */
 		croppedObject = rotatedObject(initialRect);
 
 	}
@@ -49,5 +56,6 @@ bool Hunter::hunt(Mat * inputFrame, Mat* outputObject)
 	/* This is very slow. If you need faster, remove resizing and just return
 	   cropped object :( */
 	resize(croppedObject, *outputObject, Size(width, height));
+
 	return	true;
 }

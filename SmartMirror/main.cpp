@@ -10,21 +10,7 @@ void *extractParameters(void *buffers) {
 	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
-	Mat face;
-	while (1)
-	{
-		/* If there are no new frames, continue */
-		if (rawFramesBuffer->size() == 0) {
-			continue;
-		}
 
-		/* Get the next frame from raw buffer */
-		face = faceBuffer->front()->getMatrix();
-		faceBuffer->pop_front();
-
-		imshow("Face", face);
-		waitKey(1);
-	}
 	/*bool respirationRateExecuted = false;
 	while (true) {
 		// Here goes the code that check if it is time to extract a certain parameter
@@ -84,9 +70,6 @@ void *trackAndDetect(void *buffers) {
 	{
 		while (1);
 	}
-	std::vector<Rect> faces;
-
-	Rect faceRect;
 
 	while (true) {
 
@@ -115,10 +98,12 @@ void *trackAndDetect(void *buffers) {
 			/* Find eyes */
 			if (eyesHunter.hunt(&face, &eyes))
 			{
+				/* Add eyes to the eyes buffer */
 				eyesBuffer->push_back(new Frame(eyes, timeStamp));
 			}
 		}
 	}
+
 	pthread_exit(NULL);
 	return 0;
 }
