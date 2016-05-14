@@ -9,27 +9,30 @@ void Hunter::initialize(String xmlPath, bool loadFromOpenCV)
 	initialPoints = 0;
 }
 
-bool Hunter::hunt(Mat * frame, Rect * outputRect, Mat* object)
+bool Hunter::hunt(Mat * inputFrame, Mat* outputObject)
 {
 	Mat objectMask;
+	Mat rotatedObject;
 
 	if ((tracker.getPointNum() < ABS_TRESHOLD) || (tracker.getPointNum() < PROP_TRESHOLD * initialPoints)) {
 		/*detect*/
-		if (!detector.detect(frame, outputRect)) {
+		if (!detector.detect(inputFrame, &initialRect)) {
 			return false;
 		}
 		/*find good features to track*/
-		tracker.initializeFeatures(frame, *outputRect);
+		tracker.initializeFeatures(inputFrame, initialRect);
 		initialPoints = tracker.getPointNum();
-		objectMask = Mat::zeros(frame->size(), CV_8U);
-        objectMask(*outputRect) = 1;
+		objectMask = Mat::zeros(inputFrame->size(), CV_8U);
+		objectMask(initialRect) = 1;
+		*outputObject = (*inputFrame)(initialRect);
 	}
 	else {
 		/*track*/
-		if (!tracker.track(frame, &objectMask)) {
-			tracker.rotate(frame, &objectMask, object);
+		if (!tracker.track(inputFrame, &objectMask)) {			
 			return false;
 		}
+		tracker.rotate(inputFrame, &objectMask, &rotatedObject);
+		*outputObject = rotatedObject(initialRect);
 
 	}
 

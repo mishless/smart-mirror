@@ -17,11 +17,12 @@
 class Hunter {
 public:
 	void initialize(String xmlPath, bool loadFromOpenCV);
-	bool hunt(Mat* frame, Rect* outputRect, Mat* outputMask);
+	bool hunt(Mat* frame, Mat* outputMask);
 private:
 	Detector detector;
 	Tracker tracker;
 	size_t initialPoints;
+	Rect initialRect;
 };
 
 

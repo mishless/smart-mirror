@@ -1,7 +1,9 @@
 #include "tracker.h"
 
+#define TRANSFORM_DATA_TYPE CV_64FC1
+
 void Tracker::initialize() {
-	rigidTransform = Mat::eye(3, 3, CV_32FC1);
+	rigidTransform = Mat::eye(3, 3, TRANSFORM_DATA_TYPE);
 }
 
 void Tracker::initializeFeatures(Mat* frame, Rect faceRect) {
@@ -32,7 +34,7 @@ void Tracker::initializeFeatures(Mat* frame, Rect faceRect) {
 	initialMask = mask;
 
 	/* Initialize */
-	rigidTransform = Mat::eye(3, 3, CV_32FC1);
+	rigidTransform = Mat::eye(3, 3, TRANSFORM_DATA_TYPE);
 }
 
 bool Tracker::track(Mat* frame, Mat* outputMask) {
@@ -48,8 +50,9 @@ bool Tracker::track(Mat* frame, Mat* outputMask) {
 	cvtColor((*frame), greyFrame, CV_BGR2GRAY);
 
 	calcOpticalFlowPyrLK(previousGreyFrame, greyFrame, previousPoints, points, status, errors, Size(50, 50));
+
 	if (countNonZero(status) < status.size() * 0.8) {
-		rigidTransform = Mat::eye(3, 3, CV_32FC1);
+		rigidTransform = Mat::eye(3, 3, TRANSFORM_DATA_TYPE);
 		previousPoints.clear();
 		previousGreyFrame.release();
 		return false;
@@ -65,7 +68,7 @@ bool Tracker::track(Mat* frame, Mat* outputMask) {
 
 	/* If it is empty, reset everything */
 	if (newRigidTransform.size() == Size(0, 0)) {
-		rigidTransform = Mat::eye(3, 3, CV_32FC1);
+		rigidTransform = Mat::eye(3, 3, TRANSFORM_DATA_TYPE);
 		previousPoints.clear();
 		previousGreyFrame.release();
 		return false;
@@ -73,7 +76,7 @@ bool Tracker::track(Mat* frame, Mat* outputMask) {
 
 	/* Update rigid trasnform */
 	try {
-		nrt33 = Mat::eye(3, 3, CV_32FC1);
+		nrt33 = Mat::eye(3, 3, TRANSFORM_DATA_TYPE);
 		newRigidTransform.copyTo(nrt33.rowRange(0, 2));
 		rigidTransform *= nrt33;
 	}
@@ -111,6 +114,6 @@ void Tracker::rotate(Mat* inputFrame, Mat* inputMask, Mat * outputFrame)
 {
 	Mat maskedObject, invRigidTransform;
 	(*inputFrame).copyTo(maskedObject, *inputMask);
-	invertAffineTransform(rigidTransform, invRigidTransform);
-	warpAffine(maskedObject, (*outputFrame), invRigidTransform.rowRange(0, 2), Size());
+	invertAffineTransform(rigidTransform.rowRange(0,2), invRigidTransform);
+	warpAffine(maskedObject, (*outputFrame), invRigidTransform, Size());
 }
