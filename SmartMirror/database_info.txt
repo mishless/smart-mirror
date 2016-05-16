@@ -1,0 +1,10 @@
+Database\\Caro1.jpg 0
+Database\\Caro2.jpg 0
+Database\\Caro3.jpg 0
+Database\\Caro4.jpg 0
+Database\\Caro5.jpg 0
+Database\\Vukan1.jpg 1
+Database\\Vukan2.jpg 1
+Database\\Vukan3.jpg 1
+Database\\Vukan4.jpg 1
+Database\\Vukan5.jpg 1

@@ -2,6 +2,8 @@
 #include <opencv2\video\video.hpp>
 #include <pthread.h>
 #include <string>
+#include <iostream>
+#include <fstream>
 #include "frame.h"
 #include "timer.h"
 

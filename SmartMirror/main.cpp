@@ -6,12 +6,12 @@ using namespace cv;
 
 void *extractParameters(void *buffers) {
 	
-	FrameBuffer* rawFramesBuffer = ((FrameBuffer**)buffers)[0];
+	/*FrameBuffer* rawFramesBuffer = ((FrameBuffer**)buffers)[0];
 	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
 
-	/*bool respirationRateExecuted = false;
+	bool respirationRateExecuted = false;
 	while (true) {
 		// Here goes the code that check if it is time to extract a certain parameter
 		// This will be executed by another thread
@@ -92,6 +92,9 @@ void *trackAndDetect(void *buffers) {
 		/* Find face*/
 		if (faceHunter.hunt(&frame, &face)) {
 
+			imshow("Face", face);
+			waitKey(1);
+
 			/*Add the face to the face buffer */
 			faceBuffer->push_back(new Frame(face, timeStamp));
 
@@ -135,8 +138,34 @@ void *collectFrames(void *frameBuffer) {
 	return 0;
 }
 
+void train()
+{
+	vector<Mat> images;
+	vector<int> labels;
+
+	ifstream info;
+	char file_name[100];
+	int label;
+	info.open("database_info.txt");
+
+	/* Read database images and corresponding labels*/
+	while (!info.eof())
+	{
+		info >> file_name;
+		info >> label;
+
+		images.push_back(imread(file_name));
+		labels.push_back(label);
+	}
+	info.close();
+
+	/*Ptr<FaceRecognizer> model = createEigenFaceRecognizer();*/
+
+	//while (1);
+}
 int main(int argc, char* argv[])
 {
+	//train();
 	FrameBuffer rawFramesBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer faceBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer eyesBuffer{ MAX_BUFFER_SIZE };
@@ -145,12 +174,11 @@ int main(int argc, char* argv[])
 	FrameBuffer* buffers[4]{ &rawFramesBuffer , &faceBuffer, &eyesBuffer, &handsBuffer };
 	Thread frameBufferThread;
 	Thread detectAndTrackThread;
-	Thread extractParametersThread;
+	//Thread extractParametersThread;
 	pthread_create(&frameBufferThread, NULL, collectFrames, &rawFramesBuffer);
 	pthread_create(&detectAndTrackThread, NULL, trackAndDetect, &buffers);
-	pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
-	while (true) {
-		;
-	}
+	//pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
+	
+	pthread_join(detectAndTrackThread, NULL);
 	return 0;
 }

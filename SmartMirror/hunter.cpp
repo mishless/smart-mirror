@@ -25,7 +25,7 @@ bool Hunter::hunt(Mat * inputFrame, Mat* outputObject)
 	Mat croppedObject;
 
 	if ((tracker.getPointNum() < ABS_TRESHOLD) || (tracker.getPointNum() < PROP_TRESHOLD * initialPoints)) {
-
+		cout << "Detecting!" << endl;
 		/* If we don't have sufficient points, do detectio again */
 		if (!detector.detect(inputFrame, &initialRect)) {
 			return false;
