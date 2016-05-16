@@ -1,5 +1,8 @@
 #include "hunter.h"
 #include "main.h"
+#include "opencv2/core/core.hpp"
+#include "opencv2/contrib/contrib.hpp"
+#include "opencv2/highgui/highgui.hpp"
 
 using namespace std;
 using namespace cv;
@@ -50,6 +53,33 @@ void *extractParameters(void *buffers) {
 }
 
 void *trackAndDetect(void *buffers) {
+
+	vector<Mat> images;
+	vector<int> labels;
+
+	ifstream info;
+	char file_name[100];
+	int label;
+	info.open("database_info.txt");
+
+	/* Read database images and corresponding labels*/
+	while (!info.eof())
+	{
+		info >> file_name;
+		info >> label;
+
+		images.push_back(imread(file_name));
+		labels.push_back(label);
+	}
+	info.close();
+
+	Ptr<FaceRecognizer> model = createFisherFaceRecognizer();
+	model->train(images, labels);
+
+
+
+
+
 	// Here goes the code that gets a frame and tracks/detects
 	// This will be executed by another thread
 	State state = NO_FACE_DETECTED;
@@ -57,7 +87,7 @@ void *trackAndDetect(void *buffers) {
 	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
-	Mat mask, frame, warpedFrame, face, faceMask, unflippedFrame;
+	Mat mask, frame, warpedFrame, face, faceMask, unflippedFrame, greyFace;
 	Mat eyes, hand;
 	long long int timeStamp;
 
@@ -88,11 +118,14 @@ void *trackAndDetect(void *buffers) {
 
 		/* Clean old face so old frames don't appear */
 		face.release();
+		greyFace.release();
 
 		/* Find face*/
-		if (faceHunter.hunt(&frame, &face)) {
+		if (faceHunter.hunt(&frame, &face)) {	
+			cvtColor(face, greyFace, CV_BGR2GRAY);
+			label = model->predict(greyFace);
+			cout << label << endl;
 
-			imshow("Face", face);
 			waitKey(1);
 
 			/*Add the face to the face buffer */
@@ -140,32 +173,12 @@ void *collectFrames(void *frameBuffer) {
 
 void train()
 {
-	vector<Mat> images;
-	vector<int> labels;
 
-	ifstream info;
-	char file_name[100];
-	int label;
-	info.open("database_info.txt");
-
-	/* Read database images and corresponding labels*/
-	while (!info.eof())
-	{
-		info >> file_name;
-		info >> label;
-
-		images.push_back(imread(file_name));
-		labels.push_back(label);
-	}
-	info.close();
-
-	/*Ptr<FaceRecognizer> model = createEigenFaceRecognizer();*/
-
-	//while (1);
 }
+
 int main(int argc, char* argv[])
 {
-	//train();
+	train();
 	FrameBuffer rawFramesBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer faceBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer eyesBuffer{ MAX_BUFFER_SIZE };

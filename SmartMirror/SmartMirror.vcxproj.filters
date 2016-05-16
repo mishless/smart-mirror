@@ -24,13 +24,13 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="detector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="tracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hunter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="detector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
