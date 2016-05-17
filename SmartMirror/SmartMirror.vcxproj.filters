@@ -33,6 +33,9 @@
     <ClCompile Include="detector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="recognizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="frame.h">
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hunter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="recognizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

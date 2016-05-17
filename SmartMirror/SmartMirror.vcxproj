@@ -158,6 +158,7 @@
     <ClCompile Include="frame.cpp" />
     <ClCompile Include="hunter.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="recognizer.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="tracker.cpp" />
   </ItemGroup>
@@ -165,6 +166,7 @@
     <ClInclude Include="detector.h" />
     <ClInclude Include="frame.h" />
     <ClInclude Include="hunter.h" />
+    <ClInclude Include="recognizer.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="tracker.h" />
