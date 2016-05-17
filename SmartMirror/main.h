@@ -6,6 +6,7 @@
 #include <fstream>
 #include "frame.h"
 #include "timer.h"
+#include "recognizer.h"
 
 typedef pthread_t Thread;
 
@@ -22,3 +23,5 @@ enum State { FACE_DETECTED, NO_FACE_DETECTED };
 
 #define EYES_W 200
 #define EYES_H  40
+
+#define RECOGNITION_TRESHOLD 7000

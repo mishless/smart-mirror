@@ -3,6 +3,7 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/contrib/contrib.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include <string>
 
 using namespace std;
 using namespace cv;
@@ -54,42 +55,26 @@ void *extractParameters(void *buffers) {
 
 void *trackAndDetect(void *buffers) {
 
-	vector<Mat> images;
-	vector<int> labels;
+	/* Here goes the code that gets a frame and tracks/detects
+	   This will be executed by another thread */
 
-	ifstream info;
-	char file_name[100];
-	int label;
-	info.open("database_info.txt");
-
-	/* Read database images and corresponding labels*/
-	while (!info.eof())
-	{
-		info >> file_name;
-		info >> label;
-
-		images.push_back(imread(file_name));
-		labels.push_back(label);
-	}
-	info.close();
-
-	Ptr<FaceRecognizer> model = createFisherFaceRecognizer();
-	model->train(images, labels);
-
-
-
-
-
-	// Here goes the code that gets a frame and tracks/detects
-	// This will be executed by another thread
 	State state = NO_FACE_DETECTED;
 	FrameBuffer* rawFramesBuffer = ((FrameBuffer**)buffers)[0];
 	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
-	Mat mask, frame, warpedFrame, face, faceMask, unflippedFrame, greyFace;
+	Mat mask, frame, warpedFrame, face, faceMask, unflippedFrame, grayFace;
 	Mat eyes, hand;
 	long long int timeStamp;
+	PersonInfo personInfo;
+
+	Recognizer recognizer;
+	recognizer.initialize(RECOGNITION_TRESHOLD);
+	if (!recognizer.train("info.txt", "Database"))
+	{
+		cout << "Training recognizer failed!" << endl;
+		while (1);
+	}
 
 	Hunter faceHunter, handHunter, eyesHunter;
 	if (!faceHunter.initialize("haarcascade_frontalface_alt2.xml", true, FACE_W, FACE_H))
@@ -100,6 +85,8 @@ void *trackAndDetect(void *buffers) {
 	{
 		while (1);
 	}
+
+
 
 	while (true) {
 
@@ -118,15 +105,19 @@ void *trackAndDetect(void *buffers) {
 
 		/* Clean old face so old frames don't appear */
 		face.release();
-		greyFace.release();
+		grayFace.release();
 
 		/* Find face*/
 		if (faceHunter.hunt(&frame, &face)) {	
-			cvtColor(face, greyFace, CV_BGR2GRAY);
-			label = model->predict(greyFace);
-			cout << label << endl;
 
-			waitKey(1);
+			/* Convert to gray */
+			cvtColor(face, grayFace, CV_BGR2GRAY);
+
+			/* Recognize person */
+			if (!recognizer.recognize(grayFace, &personInfo))
+				cout << "Unknown" << endl;
+			else
+				cout << personInfo.fullName << endl;
 
 			/*Add the face to the face buffer */
 			faceBuffer->push_back(new Frame(face, timeStamp));
