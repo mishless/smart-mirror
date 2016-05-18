@@ -4,9 +4,40 @@
 #include "opencv2/contrib/contrib.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include <string>
+#include <math.h>
 
 using namespace std;
 using namespace cv;
+
+void convertSpectrum(vector<double> inputSp, vector<double>* outputSp)
+{
+	/* Get dft point number */
+	int N = (int)inputSp.size();
+
+	/* DC component should be in first place of vector */
+	outputSp->push_back(inputSp[0]);
+
+	/* Calculate the rest of amplitude spectrum by using the pythogarian theorem
+	   on real-complex value pairs from the input spectrum */
+	int i = 1;
+	while (i < N - 2)
+	{
+		double tmp;
+		tmp = sqrt(inputSp[i] * inputSp[i] + inputSp[i + 1] * inputSp[i + 1]);
+		outputSp->push_back(tmp);
+		i += 2;
+	}
+}
+
+void filterSpectrum(vector<double> *inputSp, double lowFreq, double highFreq, 
+	double samplingFrequency, int *lowIndex, int *highIndex)
+{
+	int N = (int)inputSp->size();
+
+	*lowIndex = (int) round(lowFreq*N / samplingFrequency);
+	if (*lowIndex == 0) *lowIndex = 1;
+	*highIndex = (int) round(highFreq*N / samplingFrequency);
+}
 
 void *extractParameters(void *buffers) {
 	
@@ -20,15 +51,16 @@ void *extractParameters(void *buffers) {
 	vector<Mat> foreheads;
 
 	/* Forehead rectange */
-	Rect foreheadRect = Rect(FACE_W * 0.15, 0, FACE_W*0.7, FACE_H * 0.3);
+	Rect foreheadRect = Rect((int)(FACE_W * 0.15), (int)0, (int)(FACE_W*0.7), 
+		(int)(FACE_H * 0.3));
 
-	while (faceBuffer->size() < 60)
+	while (faceBuffer->size() < HR_WINDOW)
 	{
 		;
 	}
 
 	int i = 0;
-	while (i < 60)
+	while (i < HR_WINDOW)
 	{
 		face = faceBuffer->front()->getMatrix();
 		timeStamp = faceBuffer->front()->getTimestamp();
@@ -40,7 +72,7 @@ void *extractParameters(void *buffers) {
 
 	/* Convert whole vector of foreheads to YCrCb */
 	vector<Mat> foreheadsYCrCb;
-	for (i = 0; i < 60; i++)
+	for (i = 0; i < HR_WINDOW; i++)
 	{
 		Mat foreheadConverted;
 		cvtColor(foreheads[i], foreheadConverted, CV_BGR2YCrCb);
@@ -49,7 +81,7 @@ void *extractParameters(void *buffers) {
 
 	/* Calculate means of frames */
 	vector<double> means;
-	for (i = 0; i < 60; i++)
+	for (i = 0; i < HR_WINDOW; i++)
 	{
 		Scalar meansScalar;
 		double totalMean;
@@ -60,7 +92,7 @@ void *extractParameters(void *buffers) {
 	
 	/* Finding the sum */
 	double sum = 0;
-	for (i = 0; i < 60; i++)
+	for (i = 0; i < HR_WINDOW; i++)
 	{
 		sum += means[i];
 	}
@@ -69,7 +101,7 @@ void *extractParameters(void *buffers) {
 	vector<double> partiallyNormalized;
 	double minVal = 266;
 	double maxVal = -1;
-	for (i = 0; i < 60; i++)
+	for (i = 0; i < HR_WINDOW; i++)
 	{
 		double tmp = means[i] / sum;
 		if (tmp < minVal) minVal = tmp;
@@ -79,14 +111,46 @@ void *extractParameters(void *buffers) {
 
 	/* Normalize */
 	vector<double> normalized;
-	for (i = 0; i < 60; i++)
+	for (i = 0; i < HR_WINDOW; i++)
 	{
 		double x = (partiallyNormalized[i] - minVal) / (maxVal - minVal);
 		normalized.push_back(x);
 	}
 
-	
-	cout << "End!" << endl;
+	/* Do DFT */
+	vector<double> complexSpectrum;
+	vector<double> ampSpectrum;
+
+	/* Get amplitude spectrum */
+	dft(normalized, complexSpectrum);
+	convertSpectrum(complexSpectrum, &ampSpectrum);
+
+	/* Filter it */
+	int lowInd, highInd;
+	filterSpectrum(&ampSpectrum, HR_LOW_FREQ, HR_HIGH_FREQ, 1000 / SAMPLING_PERIOD,
+		&lowInd, &highInd);
+
+	/* Find biggest peak */
+	int maxInd = lowInd;
+	for (i = lowInd + 1; i <= highInd; i++)
+	{
+		if (ampSpectrum[i] > ampSpectrum[maxInd])
+		{
+			maxInd = i;
+		}
+	}
+
+	/* Convert it to heartbeat */
+	double maxFrequency, heartBeat;
+	double ibi;
+
+	maxFrequency = (double) maxInd * SAMPLING_FREQUENCY / (double) ampSpectrum.size();
+	heartBeat = 60 * maxFrequency;
+	ibi = 60 * 1000 / heartBeat; /* Milliseconds */
+
+	cout << "Heartbeat: " << heartBeat << endl;
+	cout << "Ibi : " << ibi << endl;
+
 	while (1)
 		;
 
@@ -213,34 +277,58 @@ void *trackAndDetect(void *buffers) {
 }
 
 void *collectFrames(void *frameBuffer) {
-	// Here goes the code that stores frames ina circular buffer
-	// This will be executed by another thread
+	/* Here goes the code that stores frames in a circular buffer
+	   This will be executed by another thread */
+
 	VideoCapture vc;
 	Mat frame;
-	char ch;
-	bool isVideo = true;
+	long long int newTimeStamp, lastTimeStamp;
+
+	/* Try opening the default camera */
 	try {
-		vc.open(0); //open default camera
+		vc.open(0);
 	}
 	catch (Exception e) {
-		frame = Mat::eye(100, 100, CV_32FC1);
-		isVideo = false;
-	} while ((ch = waitKey(10)) != 'q') {
-		if (isVideo)
-		{
-			vc >> frame;
-			long long int frameTimestamp = Timer::getTimestamp();
-			((FrameBuffer*)frameBuffer)->push_back(new Frame(frame, frameTimestamp));
-		}
+		/* If unsuccessful, exit */
+
+		cout << "Opening camera failed!" << endl;
+		pthread_exit(NULL);
+		return 0;
+	} 
+	
+	/* Read first frame and throw it away.
+	   This is done because reading the first frame always bugs */
+	vc >> frame;
+
+	lastTimeStamp = Timer::getTimestamp();
+
+	while (1) 
+	{
+		/* Wait until the time is right to get next frame */
+		while (Timer::getTimestamp() - lastTimeStamp < SAMPLING_PERIOD)
+			;
+
+		/* Get next frame from the webcam */
+		vc >> frame;
+			
+		/* Update time stamps */
+		newTimeStamp = Timer::getTimestamp();
+		cout << newTimeStamp - lastTimeStamp << endl;
+		lastTimeStamp = newTimeStamp;
+
+		/* Add the frame to the buffer */
+		((FrameBuffer*)frameBuffer)->push_back(new Frame(frame, newTimeStamp));
 	}
-	if (isVideo)
-		vc.release();
+
+
+	vc.release();
 	pthread_exit(NULL);
 	return 0;
 }
 
 int main(int argc, char* argv[])
 {
+
 	FrameBuffer rawFramesBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer faceBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer eyesBuffer{ MAX_BUFFER_SIZE };
@@ -254,6 +342,6 @@ int main(int argc, char* argv[])
 	pthread_create(&detectAndTrackThread, NULL, trackAndDetect, &buffers);
 	pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
 	
-	pthread_join(detectAndTrackThread, NULL);
+	pthread_join(frameBufferThread, NULL);
 	return 0;
 }

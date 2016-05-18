@@ -25,3 +25,11 @@ enum State { FACE_DETECTED, NO_FACE_DETECTED };
 #define EYES_H  40
 
 #define RECOGNITION_TRESHOLD 7000
+
+#define SAMPLING_PERIOD 35 /* milliseconds*/
+#define SAMPLING_FREQUENCY (1000 / SAMPLING_PERIOD) /* Hertz */
+
+#define HR_LOW_FREQ 0.75 /* Hertz */
+#define HR_HIGH_FREQ 4   /* Hertz */
+
+#define HR_WINDOW 90
