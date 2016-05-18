@@ -136,7 +136,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -154,6 +154,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Biquad.cpp" />
+    <ClCompile Include="Butterworth.cpp" />
     <ClCompile Include="detector.cpp" />
     <ClCompile Include="frame.cpp" />
     <ClCompile Include="hunter.cpp" />
@@ -163,6 +165,9 @@
     <ClCompile Include="tracker.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Biquad.h" />
+    <ClInclude Include="Butterworth.h" />
+    <ClInclude Include="catch.hpp" />
     <ClInclude Include="detector.h" />
     <ClInclude Include="frame.h" />
     <ClInclude Include="hunter.h" />

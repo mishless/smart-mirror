@@ -10,12 +10,87 @@ using namespace cv;
 
 void *extractParameters(void *buffers) {
 	
-	/*FrameBuffer* rawFramesBuffer = ((FrameBuffer**)buffers)[0];
+	FrameBuffer* rawFramesBuffer = ((FrameBuffer**)buffers)[0];
 	FrameBuffer* faceBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
 	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
 
-	bool respirationRateExecuted = false;
+	Mat face;
+	long long int timeStamp;
+	vector<Mat> foreheads;
+
+	/* Forehead rectange */
+	Rect foreheadRect = Rect(FACE_W * 0.15, 0, FACE_W*0.7, FACE_H * 0.3);
+
+	while (faceBuffer->size() < 60)
+	{
+		;
+	}
+
+	int i = 0;
+	while (i < 60)
+	{
+		face = faceBuffer->front()->getMatrix();
+		timeStamp = faceBuffer->front()->getTimestamp();
+		faceBuffer->pop_front();
+
+		foreheads.push_back(face(foreheadRect));
+		i++;
+	}
+
+	/* Convert whole vector of foreheads to YCrCb */
+	vector<Mat> foreheadsYCrCb;
+	for (i = 0; i < 60; i++)
+	{
+		Mat foreheadConverted;
+		cvtColor(foreheads[i], foreheadConverted, CV_BGR2YCrCb);
+		foreheadsYCrCb.push_back(foreheadConverted);
+	}
+
+	/* Calculate means of frames */
+	vector<double> means;
+	for (i = 0; i < 60; i++)
+	{
+		Scalar meansScalar;
+		double totalMean;
+		meansScalar = mean(foreheadsYCrCb[i]);
+		totalMean = (meansScalar[0] + meansScalar[1] + meansScalar[2]) / 3;
+		means.push_back(totalMean);
+	}
+	
+	/* Finding the sum */
+	double sum = 0;
+	for (i = 0; i < 60; i++)
+	{
+		sum += means[i];
+	}
+
+	/* Partially normalize */
+	vector<double> partiallyNormalized;
+	double minVal = 266;
+	double maxVal = -1;
+	for (i = 0; i < 60; i++)
+	{
+		double tmp = means[i] / sum;
+		if (tmp < minVal) minVal = tmp;
+		if (tmp > maxVal) maxVal = tmp;
+		partiallyNormalized.push_back(means[i] / sum);
+	}
+
+	/* Normalize */
+	vector<double> normalized;
+	for (i = 0; i < 60; i++)
+	{
+		double x = (partiallyNormalized[i] - minVal) / (maxVal - minVal);
+		normalized.push_back(x);
+	}
+
+	
+	cout << "End!" << endl;
+	while (1)
+		;
+
+	/*bool respirationRateExecuted = false;
 	while (true) {
 		// Here goes the code that check if it is time to extract a certain parameter
 		// This will be executed by another thread
@@ -113,11 +188,13 @@ void *trackAndDetect(void *buffers) {
 			/* Convert to gray */
 			cvtColor(face, grayFace, CV_BGR2GRAY);
 
+#if 0
 			/* Recognize person */
 			if (!recognizer.recognize(grayFace, &personInfo))
 				cout << "Unknown" << endl;
 			else
 				cout << personInfo.fullName << endl;
+#endif
 
 			/*Add the face to the face buffer */
 			faceBuffer->push_back(new Frame(face, timeStamp));
@@ -162,14 +239,8 @@ void *collectFrames(void *frameBuffer) {
 	return 0;
 }
 
-void train()
-{
-
-}
-
 int main(int argc, char* argv[])
 {
-	train();
 	FrameBuffer rawFramesBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer faceBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer eyesBuffer{ MAX_BUFFER_SIZE };
@@ -178,10 +249,10 @@ int main(int argc, char* argv[])
 	FrameBuffer* buffers[4]{ &rawFramesBuffer , &faceBuffer, &eyesBuffer, &handsBuffer };
 	Thread frameBufferThread;
 	Thread detectAndTrackThread;
-	//Thread extractParametersThread;
+	Thread extractParametersThread;
 	pthread_create(&frameBufferThread, NULL, collectFrames, &rawFramesBuffer);
 	pthread_create(&detectAndTrackThread, NULL, trackAndDetect, &buffers);
-	//pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
+	pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
 	
 	pthread_join(detectAndTrackThread, NULL);
 	return 0;
