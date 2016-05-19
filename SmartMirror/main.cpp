@@ -88,6 +88,7 @@ void *trackAndDetect(void *buffers) {
 	Mat eyes, hand;
 	long long int timeStamp;
 	PersonInfo personInfo;
+	bool isRecognized = false;
 
 	/* Forehead rectange,
 	   Will be used to extract forehead from the face */
@@ -139,13 +140,17 @@ void *trackAndDetect(void *buffers) {
 			/* Convert to gray */
 			cvtColor(face, grayFace, CV_BGR2GRAY);
 
-#if 0
 			/* Recognize person */
-			if (!recognizer.recognize(grayFace, &personInfo))
-				cout << "Unknown" << endl;
-			else
-				cout << personInfo.fullName << endl;
-#endif
+			if (!isRecognized)
+			{
+				if (!recognizer.recognize(grayFace, &personInfo))
+					cout << "Unknown Person" << endl;
+				else
+				{
+					cout << "Found " << personInfo.fullName << endl;
+					isRecognized = true;
+				}
+			}
 
 			/*Add the forehead to the forehead buffer */
 			foreheadBuffer->push_back(new Frame(face(foreheadRect), timeStamp));
@@ -156,6 +161,11 @@ void *trackAndDetect(void *buffers) {
 				/* Add eyes to the eyes buffer */
 				eyesBuffer->push_back(new Frame(eyes, timeStamp));
 			}
+		}
+		else
+		{
+			/* If face is lost, reset isRecognized flag */
+			isRecognized = false;
 		}
 	}
 

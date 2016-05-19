@@ -33,4 +33,4 @@ enum State { FACE_DETECTED, NO_FACE_DETECTED };
 #define RR_LOW_FREQ 0.1  /* Hertz */
 #define RR_HIGH_FREQ 0.5 /* Hertz */
 
-#define HR_WINDOW 256
+#define HR_WINDOW 172
