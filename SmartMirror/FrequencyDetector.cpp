@@ -1,4 +1,5 @@
 #include "FrequencyDetector.h"
+
 void FrequencyDetector::initialize(double lowFreq, double highFreq)
 {
 	lowFrequency = lowFreq;
@@ -9,9 +10,9 @@ void FrequencyDetector::filterSpectrum(vector<double> *inputSp, int *lowIndex, i
 {
 	int N = (int)inputSp->size();
 
-	*lowIndex = (int)round(lowFrequency*N / SAMPLING_FREQUENCY);
+	*lowIndex = (int)round(lowFrequency * 2 * N / SAMPLING_FREQUENCY);
 	if (*lowIndex == 0) *lowIndex = 1;
-	*highIndex = (int)round(highFrequency*N / SAMPLING_FREQUENCY);
+	*highIndex = (int)round(highFrequency * 2 * N / SAMPLING_FREQUENCY);
 }
 
 void FrequencyDetector::convertSpectrum(vector<double> *inputSp, vector<double>* outputSp)
@@ -49,13 +50,12 @@ double FrequencyDetector::detectFrequency(vector<Mat> * frames)
 	double minVal;
 	double maxVal;
 	int lowInd, highInd;
-	double maxFrequency;
 	int i;
 	sum = 0;
 	minVal = 266;
 	maxVal = -1;
 
-	cout << "***********************" << endl;
+	//cout << "***********************" << endl;
 	for (i = 0; i < frames->size(); i++)
 	{
 		/* Get forehead from vector */
@@ -114,11 +114,6 @@ double FrequencyDetector::detectFrequency(vector<Mat> * frames)
 	/* Filter it */
 	filterSpectrum(&ampSpectrum, &lowInd, &highInd);
 
-	for (i = 0; i <= highInd; i++)
-	{
-		cout << i << " : " << ampSpectrum[i] << endl;
-	}
-
 	/* Find biggest peak */
 	int maxInd = lowInd;
 	for (i = lowInd + 1; i <= highInd; i++)
@@ -130,5 +125,5 @@ double FrequencyDetector::detectFrequency(vector<Mat> * frames)
 	}
 	cout << "Low Ind: " <<lowInd << endl;
 	//cout << "HB: " << ((double)maxInd * SAMPLING_FREQUENCY / (double)ampSpectrum.size()) * 60 << endl;
-	return (double)maxInd * SAMPLING_FREQUENCY / (double)ampSpectrum.size();
+	return (double)maxInd * SAMPLING_FREQUENCY / (2*(double)ampSpectrum.size());
 }

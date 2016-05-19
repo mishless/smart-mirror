@@ -20,13 +20,17 @@ void *extractParameters(void *buffers) {
 	FrequencyDetector HBDetector;
 	HBDetector.initialize(HR_LOW_FREQ, HR_HIGH_FREQ);
 
+	FrequencyDetector RRDetector;
+	RRDetector.initialize(RR_LOW_FREQ, RR_HIGH_FREQ);
+
 	Mat forehead, foreheadConverted;
-	double maxFrequency, heartBeat;
+	double maxFrequencyHB, maxFrequencyRR, heartBeat;
+	double respRate;
 	double ibi;
-	int i;
 	vector<Mat> foreheads;
-	double mean;
-	double sum = 0;
+	double HBMean, RRMean;
+	double HBSum = 0;
+	double RRSum = 0;
 	int cnt = 0;
 
 	while (1)
@@ -42,17 +46,28 @@ void *extractParameters(void *buffers) {
 		}	
 	
 		/* Calculate frequency with HB detector */
-		maxFrequency = HBDetector.detectFrequency(&foreheads);
-		heartBeat = 60 * maxFrequency;
+		maxFrequencyHB = HBDetector.detectFrequency(&foreheads); /* Hertz */
+		heartBeat = 60 * maxFrequencyHB; /* Beats per minute */
 		ibi = 60 * 1000 / heartBeat; /* Milliseconds */
 
-		sum += heartBeat;
-		cnt++;
-		mean = sum / cnt;
+		/* Calculate respiration rate with RR detector */
+		maxFrequencyRR = RRDetector.detectFrequency(&foreheads); /* Hertz */
+		respRate = maxFrequencyRR * 60;
 
+		/* Update statistics for mean values */
+		cnt++;
+		HBSum += heartBeat;
+		HBMean = HBSum / cnt;
+		RRSum += respRate;
+		RRMean = RRSum / cnt;
+		
+		cout << "*************************" << endl;
 		cout << "Heartbeat: " << heartBeat << endl;
+		cout << "Heartbeat mean: " << HBMean << endl;
 		cout << "Ibi : " << ibi << endl;
-		cout << "Mean: " << mean << endl;
+		cout << "Respiration rate: " << respRate << endl;
+		cout << "Respiration rate mean: " << RRMean << endl;
+		
 		foreheads.clear();
 	}
 
@@ -121,9 +136,6 @@ void *trackAndDetect(void *buffers) {
 		/* Find face*/
 		if (faceHunter.hunt(&frame, &face)) {	
 
-			imshow("Video", face);
-			waitKey(1);
-
 			/* Convert to gray */
 			cvtColor(face, grayFace, CV_BGR2GRAY);
 
@@ -161,7 +173,7 @@ void *collectFrames(void *frameBuffer) {
 
 	/* Try opening the default camera */
 	try {
-		vc.open("Aleksandra.mp4");
+		vc.open(0);
 	}
 	catch (Exception e) {
 		/* If unsuccessful, exit */
