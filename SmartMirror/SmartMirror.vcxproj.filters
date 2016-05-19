@@ -36,6 +36,9 @@
     <ClCompile Include="recognizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FrequencyDetector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="frame.h">
@@ -57,6 +60,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="recognizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FrequencyDetector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

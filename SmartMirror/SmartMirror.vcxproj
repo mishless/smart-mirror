@@ -156,6 +156,7 @@
   <ItemGroup>
     <ClCompile Include="detector.cpp" />
     <ClCompile Include="frame.cpp" />
+    <ClCompile Include="FrequencyDetector.cpp" />
     <ClCompile Include="hunter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="recognizer.cpp" />
@@ -165,6 +166,7 @@
   <ItemGroup>
     <ClInclude Include="detector.h" />
     <ClInclude Include="frame.h" />
+    <ClInclude Include="FrequencyDetector.h" />
     <ClInclude Include="hunter.h" />
     <ClInclude Include="recognizer.h" />
     <ClInclude Include="timer.h" />

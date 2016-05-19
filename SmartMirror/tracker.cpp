@@ -4,6 +4,7 @@
 
 void Tracker::initialize() {
 	rigidTransform = Mat::eye(3, 3, TRANSFORM_DATA_TYPE);
+
 }
 
 void Tracker::initializeFeatures(Mat* frame, Rect faceRect) {
@@ -107,6 +108,7 @@ bool Tracker::track(Mat* frame, Mat* outputMask) {
 }
 
 size_t Tracker::getPointNum() {
+	int a = 5;
 	return previousPoints.size();
 }
 
