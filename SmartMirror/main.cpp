@@ -3,12 +3,11 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/contrib/contrib.hpp"
 #include "opencv2/highgui/highgui.hpp"
-#include <string>
 #include <math.h>
 
 using namespace std;
 using namespace cv;
-
+using namespace OpenNN;
 
 void *extractParameters(void *buffers) {
 	
@@ -106,12 +105,14 @@ void *trackAndDetect(void *buffers) {
 
 	/* Forehead rectange,
 	   Will be used to extract forehead from the face */
-	Rect foreheadRect = Rect((int)(FACE_W * 0.15), (int)0, (int)(FACE_W*0.7),
+	Rect foreheadRect = Rect((int)(FACE_W * 0.15), (int)0, 
+		(int)(FACE_W*0.7),
 		(int)(FACE_H * 0.3));
 
 	/* Palm rectangle,
 	   Will be used to extract palm from the hand */
-	Rect palmRect = Rect((int)(HAND_W * 0.2), (int)(HAND_H * 0.5), (int)(HAND_W*0.6),
+	Rect palmRect = Rect((int)(HAND_W * 0.2), (int)(HAND_H * 0.5), 
+		(int)(HAND_W*0.6),
 		(int)(HAND_H * 0.5));
 
 	Recognizer recognizer;
@@ -123,11 +124,13 @@ void *trackAndDetect(void *buffers) {
 	}
 
 	Hunter faceHunter, handHunter, eyesHunter;
-	if (!faceHunter.initialize("haarcascade_frontalface_alt2.xml", true, FACE_W, FACE_H))
+	if (!faceHunter.initialize("haarcascade_frontalface_alt2.xml", true, 
+		FACE_W, FACE_H))
 	{
 		while (1);
 	}
-	if (!eyesHunter.initialize("haarcascade_mcs_eyepair_big.xml", true, EYES_W, EYES_H))
+	if (!eyesHunter.initialize("haarcascade_mcs_eyepair_big.xml", true, 
+		EYES_W, EYES_H))
 	{
 		while (1);
 	}
@@ -241,7 +244,7 @@ void *collectFrames(void *frameBuffer) {
 
 		/* Get next frame from the webcam */
 		vc >> frame;
-			
+
 		/* Update time stamps */
 		newTimeStamp = Timer::getTimestamp();
 		lastTimeStamp = newTimeStamp;
@@ -258,11 +261,22 @@ void *collectFrames(void *frameBuffer) {
 
 void probaj()
 {
-	PhaseDetector pd;
-	pd.detect(0, 0, 0);
+	BPNeuralNetwork bpnn(4,6,3);
+	vector<double> input(4);
+	vector<double> output;
 
-	while (1);
+	input[0] = 185;
+	input[1] = 85;
+	input[2] = 0.28;
+	input[3] = 23;
+	
+	//bpnn.train("svoje.dat");
+	bpnn.load("kolja");
+	bpnn.getOutput(input, &output);
+	while (1)
+		;
 }
+
 int main(int argc, char* argv[])
 {
 
@@ -273,7 +287,8 @@ int main(int argc, char* argv[])
 	FrameBuffer eyesBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer handsBuffer{ MAX_BUFFER_SIZE };
 
-	FrameBuffer* buffers[4]{ &rawFramesBuffer , &foreheadBuffer, &eyesBuffer, &handsBuffer };
+	FrameBuffer* buffers[4]{ &rawFramesBuffer , &foreheadBuffer,
+		                     &eyesBuffer, &handsBuffer };
 	Thread frameBufferThread;
 	Thread detectAndTrackThread;
 	Thread extractParametersThread;

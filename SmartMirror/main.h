@@ -12,6 +12,7 @@
 #include "recognizer.h"
 #include "FrequencyDetector.h"
 #include "phaseDetector.h"
+#include "BPNeuralNetwork.h"
 
 typedef pthread_t Thread;
 

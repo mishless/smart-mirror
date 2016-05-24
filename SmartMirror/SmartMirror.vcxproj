@@ -139,7 +139,7 @@
       <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(BOOST_DIR);$(PTHREAD_DIR)\include;D:\Programiranje\MATLAB\Smart Mirror\C++\smart-mirror\SmartMirror</AdditionalIncludeDirectories>
       <AdditionalOptions>-DHAVE_STRUCT_TIMESPEC %(AdditionalOptions)</AdditionalOptions>
@@ -154,21 +154,78 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\parsers\tinyxml\tinystr.cpp" />
+    <ClCompile Include="..\parsers\tinyxml\tinyxml.cpp" />
+    <ClCompile Include="..\parsers\tinyxml\tinyxmlerror.cpp" />
+    <ClCompile Include="..\parsers\tinyxml\tinyxmlparser.cpp" />
+    <ClCompile Include="BPNeuralNetwork.cpp" />
+    <ClCompile Include="data_set\data_set.cpp" />
+    <ClCompile Include="data_set\instances_information.cpp" />
+    <ClCompile Include="data_set\variables_information.cpp" />
     <ClCompile Include="detector.cpp" />
     <ClCompile Include="frame.cpp" />
     <ClCompile Include="FrequencyDetector.cpp" />
     <ClCompile Include="hunter.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mathematical_model\mathematical_model.cpp" />
+    <ClCompile Include="mathematical_model\ordinary_differential_equations.cpp" />
+    <ClCompile Include="mathematical_model\plug_in.cpp" />
+    <ClCompile Include="model_selection\model_selection.cpp" />
+    <ClCompile Include="neural_network\bounding_layer.cpp" />
+    <ClCompile Include="neural_network\conditions_layer.cpp" />
+    <ClCompile Include="neural_network\independent_parameters.cpp" />
+    <ClCompile Include="neural_network\inputs_outputs_information.cpp" />
+    <ClCompile Include="neural_network\multilayer_perceptron.cpp" />
+    <ClCompile Include="neural_network\neural_network.cpp" />
+    <ClCompile Include="neural_network\perceptron.cpp" />
+    <ClCompile Include="neural_network\perceptron_layer.cpp" />
+    <ClCompile Include="neural_network\probabilistic_layer.cpp" />
+    <ClCompile Include="neural_network\scaling_layer.cpp" />
+    <ClCompile Include="neural_network\unscaling_layer.cpp" />
+    <ClCompile Include="performance_functional\cross_entropy_error.cpp" />
+    <ClCompile Include="performance_functional\final_solutions_error.cpp" />
+    <ClCompile Include="performance_functional\independent_parameters_error.cpp" />
+    <ClCompile Include="performance_functional\inverse_sum_squared_error.cpp" />
+    <ClCompile Include="performance_functional\mean_squared_error.cpp" />
+    <ClCompile Include="performance_functional\minkowski_error.cpp" />
+    <ClCompile Include="performance_functional\neural_parameters_norm.cpp" />
+    <ClCompile Include="performance_functional\normalized_squared_error.cpp" />
+    <ClCompile Include="performance_functional\outputs_integrals.cpp" />
+    <ClCompile Include="performance_functional\performance_functional.cpp" />
+    <ClCompile Include="performance_functional\performance_term.cpp" />
+    <ClCompile Include="performance_functional\root_mean_squared_error.cpp" />
+    <ClCompile Include="performance_functional\solutions_error.cpp" />
+    <ClCompile Include="performance_functional\sum_squared_error.cpp" />
     <ClCompile Include="phaseDetector.cpp" />
     <ClCompile Include="recognizer.cpp" />
+    <ClCompile Include="testing_analysis\function_regression_testing.cpp" />
+    <ClCompile Include="testing_analysis\inverse_problem_testing.cpp" />
+    <ClCompile Include="testing_analysis\pattern_recognition_testing.cpp" />
+    <ClCompile Include="testing_analysis\testing_analysis.cpp" />
+    <ClCompile Include="testing_analysis\time_series_prediction_testing.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="tracker.cpp" />
+    <ClCompile Include="training_strategy\conjugate_gradient.cpp" />
+    <ClCompile Include="training_strategy\evolutionary_algorithm.cpp" />
+    <ClCompile Include="training_strategy\gradient_descent.cpp" />
+    <ClCompile Include="training_strategy\levenberg_marquardt_algorithm.cpp" />
+    <ClCompile Include="training_strategy\newton_method.cpp" />
+    <ClCompile Include="training_strategy\quasi_newton_method.cpp" />
+    <ClCompile Include="training_strategy\random_search.cpp" />
+    <ClCompile Include="training_strategy\training_algorithm.cpp" />
+    <ClCompile Include="training_strategy\training_rate_algorithm.cpp" />
+    <ClCompile Include="training_strategy\training_strategy.cpp" />
+    <ClCompile Include="utilities\linear_algebraic_equations.cpp" />
+    <ClCompile Include="utilities\numerical_differentiation.cpp" />
+    <ClCompile Include="utilities\numerical_integration.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BPNeuralNetwork.h" />
     <ClInclude Include="detector.h" />
     <ClInclude Include="frame.h" />
     <ClInclude Include="FrequencyDetector.h" />
     <ClInclude Include="hunter.h" />
+    <ClInclude Include="opennn.h" />
     <ClInclude Include="phaseDetector.h" />
     <ClInclude Include="recognizer.h" />
     <ClInclude Include="timer.h" />
