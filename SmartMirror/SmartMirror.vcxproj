@@ -159,6 +159,7 @@
     <ClCompile Include="FrequencyDetector.cpp" />
     <ClCompile Include="hunter.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="phaseDetector.cpp" />
     <ClCompile Include="recognizer.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="tracker.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="frame.h" />
     <ClInclude Include="FrequencyDetector.h" />
     <ClInclude Include="hunter.h" />
+    <ClInclude Include="phaseDetector.h" />
     <ClInclude Include="recognizer.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="main.h" />

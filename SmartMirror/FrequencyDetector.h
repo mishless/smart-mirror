@@ -11,11 +11,11 @@
 #include <iostream>
 #include <vector>
 #include "frame.h"
+#include "main.h"
 
-#define SAMPLING_PERIOD ((double)35) /* milliseconds*/
-#define SAMPLING_FREQUENCY ((double)1000 / SAMPLING_PERIOD) /* Hertz */
 
-#define TOTAL_DFT_WINDOW 256
+
+
 
 using namespace std;
 using namespace cv;

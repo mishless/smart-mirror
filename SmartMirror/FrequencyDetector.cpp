@@ -123,7 +123,7 @@ double FrequencyDetector::detectFrequency(vector<Mat> * frames)
 			maxInd = i;
 		}
 	}
-	cout << "Low Ind: " <<lowInd << endl;
+	
 	//cout << "HB: " << ((double)maxInd * SAMPLING_FREQUENCY / (double)ampSpectrum.size()) * 60 << endl;
 	return (double)maxInd * SAMPLING_FREQUENCY / (2*(double)ampSpectrum.size());
 }

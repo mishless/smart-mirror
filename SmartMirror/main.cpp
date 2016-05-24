@@ -15,7 +15,7 @@ void *extractParameters(void *buffers) {
 	FrameBuffer* rawFramesBuffer = ((FrameBuffer**)buffers)[0];
 	FrameBuffer* foreheadBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
-	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
+	FrameBuffer* palmBuffer = ((FrameBuffer**)buffers)[3];
 
 	FrequencyDetector HBDetector;
 	HBDetector.initialize(HR_LOW_FREQ, HR_HIGH_FREQ);
@@ -23,26 +23,34 @@ void *extractParameters(void *buffers) {
 	FrequencyDetector RRDetector;
 	RRDetector.initialize(RR_LOW_FREQ, RR_HIGH_FREQ);
 
+	PhaseDetector phaseDetector;
+
 	Mat forehead, foreheadConverted;
 	double maxFrequencyHB, maxFrequencyRR, heartBeat;
 	double respRate;
 	double ibi;
 	vector<Mat> foreheads;
+	vector<Mat> palms;
 	double HBMean, RRMean;
 	double HBSum = 0;
 	double RRSum = 0;
+	double something;
 	int cnt = 0;
+	Mat palm;
+
 
 	while (1)
 	{
 		/* Save foreheads in temp vector, used for HR detection */
 		while (foreheads.size() < HR_WINDOW)
 		{
-			while (foreheadBuffer->size() == 0) {
+			while (foreheadBuffer->size() == 0 || palmBuffer->size() == 0) {
 				;
 			}
 			foreheads.push_back(foreheadBuffer->front()->getMatrix());
+			palms.push_back(palmBuffer->front()->getMatrix());
 			foreheadBuffer->pop_front();
+			palmBuffer->pop_front();
 		}	
 	
 		/* Calculate frequency with HB detector */
@@ -54,6 +62,10 @@ void *extractParameters(void *buffers) {
 		maxFrequencyRR = RRDetector.detectFrequency(&foreheads); /* Hertz */
 		respRate = maxFrequencyRR * 60;
 
+		/* Get Pulse Transit Time using the detected HB frequency */
+		something = phaseDetector.detect(&foreheads, &palms, maxFrequencyHB);
+		//cout << "Something: " << something << endl;
+
 		/* Update statistics for mean values */
 		cnt++;
 		HBSum += heartBeat;
@@ -61,14 +73,16 @@ void *extractParameters(void *buffers) {
 		RRSum += respRate;
 		RRMean = RRSum / cnt;
 		
-		cout << "*************************" << endl;
+		//cout << "*************************" << endl;
 		cout << "Heartbeat: " << heartBeat << endl;
 		cout << "Heartbeat mean: " << HBMean << endl;
 		cout << "Ibi : " << ibi << endl;
 		cout << "Respiration rate: " << respRate << endl;
 		cout << "Respiration rate mean: " << RRMean << endl;
-		
+		cout << "*************************" << endl;
+
 		foreheads.clear();
+		palms.clear();
 	}
 
 	return 0;
@@ -83,7 +97,7 @@ void *trackAndDetect(void *buffers) {
 	FrameBuffer* rawFramesBuffer = ((FrameBuffer**)buffers)[0];
 	FrameBuffer* foreheadBuffer = ((FrameBuffer**)buffers)[1];
 	FrameBuffer* eyesBuffer = ((FrameBuffer**)buffers)[2];
-	FrameBuffer* handsBuffer = ((FrameBuffer**)buffers)[3];
+	FrameBuffer* palmBuffer = ((FrameBuffer**)buffers)[3];
 	Mat mask, frame, warpedFrame, face, faceMask, unflippedFrame, grayFace;
 	Mat eyes, hand;
 	long long int timeStamp;
@@ -94,6 +108,11 @@ void *trackAndDetect(void *buffers) {
 	   Will be used to extract forehead from the face */
 	Rect foreheadRect = Rect((int)(FACE_W * 0.15), (int)0, (int)(FACE_W*0.7),
 		(int)(FACE_H * 0.3));
+
+	/* Palm rectangle,
+	   Will be used to extract palm from the hand */
+	Rect palmRect = Rect((int)(HAND_W * 0.2), (int)(HAND_H * 0.5), (int)(HAND_W*0.6),
+		(int)(HAND_H * 0.5));
 
 	Recognizer recognizer;
 	recognizer.initialize(RECOGNITION_TRESHOLD);
@@ -112,7 +131,10 @@ void *trackAndDetect(void *buffers) {
 	{
 		while (1);
 	}
-
+	if (!handHunter.initialize("hands_final.xml", false, 200, 200))
+	{
+		while (1);
+	}
 
 
 	while (true) {
@@ -133,10 +155,11 @@ void *trackAndDetect(void *buffers) {
 		/* If removed, causes errors */
 		face.release();
 		eyes.release();
+		hand.release();
 
 		/* Find face*/
 		if (faceHunter.hunt(&frame, &face)) {	
-
+			
 			/* Convert to gray */
 			cvtColor(face, grayFace, CV_BGR2GRAY);
 
@@ -144,7 +167,8 @@ void *trackAndDetect(void *buffers) {
 			if (!isRecognized)
 			{
 				if (!recognizer.recognize(grayFace, &personInfo))
-					cout << "Unknown Person" << endl;
+					//cout << "Unknown Person" << endl;
+					;
 				else
 				{
 					cout << "Found " << personInfo.fullName << endl;
@@ -153,13 +177,21 @@ void *trackAndDetect(void *buffers) {
 			}
 
 			/*Add the forehead to the forehead buffer */
-			foreheadBuffer->push_back(new Frame(face(foreheadRect), timeStamp));
+			//foreheadBuffer->push_back(new Frame(face(foreheadRect), timeStamp));
 
 			/* Find eyes */
 			if (eyesHunter.hunt(&face, &eyes))
 			{
+
 				/* Add eyes to the eyes buffer */
 				eyesBuffer->push_back(new Frame(eyes, timeStamp));
+			}
+
+			/* Find hand */
+			if (handHunter.hunt(&frame, &hand))
+			{
+				foreheadBuffer->push_back(new Frame(face(foreheadRect), timeStamp));
+				palmBuffer->push_back(new Frame(hand(palmRect), timeStamp));
 			}
 		}
 		else
@@ -224,8 +256,17 @@ void *collectFrames(void *frameBuffer) {
 	return 0;
 }
 
+void probaj()
+{
+	PhaseDetector pd;
+	pd.detect(0, 0, 0);
+
+	while (1);
+}
 int main(int argc, char* argv[])
 {
+
+	//probaj();
 
 	FrameBuffer rawFramesBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer foreheadBuffer{ MAX_BUFFER_SIZE };
