@@ -134,12 +134,5 @@ double PhaseDetector::detect(vector<Mat>* foreheads, vector<Mat>* palms, double 
 	/* Calculate PTT */
 	pulseTransitTime = phaseDifference / (2 * MY_PI * freq);
 
-	//cout << "Frequency index: " << freqInd << endl;
-	//cout << "Frequency: " << freq << endl;
-	//cout << "Palm phase: " << palmPhases[freqInd] << endl;
-	//cout << "Forehead phase: " << foreheadPhases[freqInd] << endl;
-	//cout << "Phase difference: " << phaseDifference << endl;
-	cout << "PTT: " << pulseTransitTime << "s" << endl;
-
 	return 0;
 }

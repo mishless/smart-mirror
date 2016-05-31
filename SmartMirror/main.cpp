@@ -4,10 +4,13 @@
 #include "opencv2/contrib/contrib.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include <math.h>
+#include "eyeHelperFunctions.h"
 
 using namespace std;
 using namespace cv;
 using namespace OpenNN;
+
+bool isBPDone = false;
 
 void *extractParameters(void *buffers) {
 	
@@ -33,52 +36,106 @@ void *extractParameters(void *buffers) {
 	double HBMean, RRMean;
 	double HBSum = 0;
 	double RRSum = 0;
-	double something;
+	double PTT;
+	double PTTTotal = 0;
+	double PTTCount = 0;
+	double PTTMean;
 	int cnt = 0;
 	Mat palm;
+	BloodPressure_t bloodPressure;
+	string bloodPressureString;
 
+	BPNeuralNetwork bpnn(4, 6, 3);
+	vector<double> input(4);
+	vector<double> output;
+
+	bpnn.load("savedNeuralNetwork.ann");
 
 	while (1)
 	{
 		/* Save foreheads in temp vector, used for HR detection */
 		while (foreheads.size() < HR_WINDOW)
 		{
-			while (foreheadBuffer->size() == 0 || palmBuffer->size() == 0) {
+			while (foreheadBuffer->size() == 0 || ((palmBuffer->size() == 0) && !isBPDone)) {
 				;
 			}
 			foreheads.push_back(foreheadBuffer->front()->getMatrix());
-			palms.push_back(palmBuffer->front()->getMatrix());
 			foreheadBuffer->pop_front();
-			palmBuffer->pop_front();
+			if (!isBPDone)
+			{
+				palms.push_back(palmBuffer->front()->getMatrix());
+				palmBuffer->pop_front();
+			}
 		}	
 	
 		/* Calculate frequency with HB detector */
 		maxFrequencyHB = HBDetector.detectFrequency(&foreheads); /* Hertz */
 		heartBeat = 60 * maxFrequencyHB; /* Beats per minute */
-		ibi = 60 * 1000 / heartBeat; /* Milliseconds */
 
 		/* Calculate respiration rate with RR detector */
 		maxFrequencyRR = RRDetector.detectFrequency(&foreheads); /* Hertz */
 		respRate = maxFrequencyRR * 60;
 
 		/* Get Pulse Transit Time using the detected HB frequency */
-		something = phaseDetector.detect(&foreheads, &palms, maxFrequencyHB);
-		//cout << "Something: " << something << endl;
+		if (!isBPDone)
+		{
+			PTT = phaseDetector.detect(&foreheads, &palms, maxFrequencyHB);
+		}
 
 		/* Update statistics for mean values */
 		cnt++;
 		HBSum += heartBeat;
 		HBMean = HBSum / cnt;
+		ibi = 60 * 1000 / HBMean; /* Milliseconds */
 		RRSum += respRate;
 		RRMean = RRSum / cnt;
-		
-		//cout << "*************************" << endl;
-		cout << "Heartbeat: " << heartBeat << endl;
-		cout << "Heartbeat mean: " << HBMean << endl;
-		cout << "Ibi : " << ibi << endl;
-		cout << "Respiration rate: " << respRate << endl;
-		cout << "Respiration rate mean: " << RRMean << endl;
+
+		if (!isBPDone)
+		{
+			PTTTotal += PTT;
+			if (cnt * HR_WINDOW * SAMPLING_PERIOD >= BLOOD_PRESSURE_PERIOD)
+			{
+				PTTMean = PTTTotal / cnt;
+				/* TODO fill data from person info */
+				input[0] = 185;
+				input[1] = 85;
+				input[2] = PTTMean;
+				input[3] = 23;
+				bpnn.getOutput(input, &output);
+
+				if (output[0] >= output[1] && output[0] >= output[2])
+				{
+					bloodPressure = LOW_PRESSURE;
+					bloodPressureString = "Low";
+				}
+				else if (output[1] > output[0] && output[1] >= output[2])
+				{
+					bloodPressure = NORMAL_PRESSURE;
+					bloodPressureString = "Normal";
+				}
+				else if (output[2] > output[0] && output[2] > output[1])
+				{
+					bloodPressure = HIGH_PRESSURE;
+					bloodPressureString = "High";
+				}
+				isBPDone = true;
+			}
+		}
+
+
+		cout << "Heartbeat: " << HBMean << endl;
+		cout << "Inter-beat interval: " << ibi << endl;
+		cout << "Respiration rate: " << RRMean << endl;
+		if (!isBPDone)
+		{
+			cout << "Blood Pressure: Measuring..." << endl;
+		}
+		else
+		{
+			cout << "Blood Pressure: " << bloodPressureString << endl;
+		}
 		cout << "*************************" << endl;
+
 
 		foreheads.clear();
 		palms.clear();
@@ -139,7 +196,7 @@ void *trackAndDetect(void *buffers) {
 		while (1);
 	}
 
-
+	int i = 28*5*5;
 	while (true) {
 
 		/* If there are no new frames, continue */
@@ -179,22 +236,39 @@ void *trackAndDetect(void *buffers) {
 				}
 			}
 
-			/*Add the forehead to the forehead buffer */
-			//foreheadBuffer->push_back(new Frame(face(foreheadRect), timeStamp));
 
 			/* Find eyes */
 			if (eyesHunter.hunt(&face, &eyes))
 			{
-
 				/* Add eyes to the eyes buffer */
 				eyesBuffer->push_back(new Frame(eyes, timeStamp));
+				if (++i % 28*5 == 0)
+				{
+					string name = "Eyes", extension = ".jpg";
+					string number = to_string(i / 28*5);
+					char path[100];
+					strcpy(path, (name + number + extension).c_str());
+					imwrite(path, eyes);
+					cout << "Saved image " << path << endl;
+				}
+			}
+			else
+			{
+				cout << "IMA LICA ALI NE I OCIJU!" << endl;
 			}
 
 			/* Find hand */
-			if (handHunter.hunt(&frame, &hand))
+			if (!isBPDone)
+			{
+				if (handHunter.hunt(&frame, &hand))
+				{
+					foreheadBuffer->push_back(new Frame(face(foreheadRect), timeStamp));
+					palmBuffer->push_back(new Frame(hand(palmRect), timeStamp));
+				}
+			}
+			else
 			{
 				foreheadBuffer->push_back(new Frame(face(foreheadRect), timeStamp));
-				palmBuffer->push_back(new Frame(hand(palmRect), timeStamp));
 			}
 		}
 		else
@@ -202,6 +276,7 @@ void *trackAndDetect(void *buffers) {
 			/* If face is lost, reset isRecognized flag */
 			isRecognized = false;
 		}
+
 	}
 
 	pthread_exit(NULL);
@@ -231,8 +306,6 @@ void *collectFrames(void *frameBuffer) {
 	/* Read first frame and throw it away.
 	   This is done because reading the first frame always bugs */
 	vc >> frame;
-	vc >> frame;
-	vc >> frame;
 
 	lastTimeStamp = Timer::getTimestamp();
 
@@ -261,25 +334,42 @@ void *collectFrames(void *frameBuffer) {
 
 void probaj()
 {
-	BPNeuralNetwork bpnn(4,6,3);
-	vector<double> input(4);
-	vector<double> output;
+	Mat im;
+	Mat grayIm;
+	Mat streched;
+	Mat binarized;
+	Mat inverted;
+	Mat eyes;
+	vector<int> suma;
+	vector<int> peaks;
+	vector<int> locs;
+	vector<double> minovi;
+	vector<double> diferencijal;
+	vector<int> indeksi;
+	vector<int> nadjeniIndeksi;
 
-	input[0] = 185;
-	input[1] = 85;
-	input[2] = 0.28;
-	input[3] = 23;
-	
-	//bpnn.train("svoje.dat");
-	bpnn.load("kolja");
-	bpnn.getOutput(input, &output);
+	int i;
+	int dL;
+	int dR;
+
+	for (i = 0; i < 9; i++)
+	{
+		string broj = to_string(i);
+		string name = "Eyes";
+		string extension = ".jpg";
+		char path[100];
+		strcpy(path, (name + broj + extension).c_str());
+		eyes = imread(path);
+		eyelidsDistances(eyes, &dL, &dR);
+		cout << i << " : " << "dL/dR = " << dL << "/" << dR << endl;
+	}
+
 	while (1)
 		;
 }
 
 int main(int argc, char* argv[])
 {
-
 	//probaj();
 
 	FrameBuffer rawFramesBuffer{ MAX_BUFFER_SIZE };
@@ -294,7 +384,7 @@ int main(int argc, char* argv[])
 	Thread extractParametersThread;
 	pthread_create(&frameBufferThread, NULL, collectFrames, &rawFramesBuffer);
 	pthread_create(&detectAndTrackThread, NULL, trackAndDetect, &buffers);
-	pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
+	//pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
 	
 	pthread_join(frameBufferThread, NULL);
 	return 0;

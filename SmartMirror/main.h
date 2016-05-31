@@ -44,7 +44,13 @@ enum State { FACE_DETECTED, NO_FACE_DETECTED };
 #define HR_WINDOW 172
 #define TOTAL_DFT_WINDOW 256
 
-#define SAMPLING_PERIOD ((double)35) /* milliseconds*/
+#define SAMPLING_PERIOD ((double)35) /* Milliseconds*/
 #define SAMPLING_FREQUENCY ((double)1000 / SAMPLING_PERIOD) /* Hertz */
 
+#define BLOOD_PRESSURE_PERIOD 20000 /* Milliseconds */
+
+#define DROWSINESS_PERIOD_1 2000 /* Milliseconds */
+#define DROWSINESS_PERIOD_2 25000 /* Milliseconds */
+
+typedef enum { LOW_PRESSURE, NORMAL_PRESSURE, HIGH_PRESSURE } BloodPressure_t;
 #endif
