@@ -33,7 +33,7 @@ enum State { FACE_DETECTED, NO_FACE_DETECTED };
 #define HAND_W 200
 #define HAND_H 200
 
-#define RECOGNITION_TRESHOLD 7000
+#define RECOGNITION_TRESHOLD 10000
 
 #define HR_LOW_FREQ 0.75 /* Hertz */
 #define HR_HIGH_FREQ 4   /* Hertz */
@@ -49,8 +49,12 @@ enum State { FACE_DETECTED, NO_FACE_DETECTED };
 
 #define BLOOD_PRESSURE_PERIOD 20000 /* Milliseconds */
 
-#define DROWSINESS_PERIOD_1 2000 /* Milliseconds */
-#define DROWSINESS_PERIOD_2 25000 /* Milliseconds */
+
+#define DROWSINESS_PERIOD 20000 /* Milliseconds */
+#define EYE_RECORDING_MAX 2000 /* Milliseconds*/
+
+#define AWAKE_THRESHOLD  0.70   /* Percent */
+#define DROWSY_THRESHOLD 0.95 /* Percent */
 
 typedef enum { LOW_PRESSURE, NORMAL_PRESSURE, HIGH_PRESSURE } BloodPressure_t;
 #endif

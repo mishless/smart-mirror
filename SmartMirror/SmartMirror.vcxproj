@@ -141,7 +141,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(BOOST_DIR);$(PTHREAD_DIR)\include;D:\Programiranje\MATLAB\Smart Mirror\C++\smart-mirror\SmartMirror</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Programiranje\MATLAB\Smart Mirror\C++\smart-mirror\SmartMirror\novi;D:\Downloads\ffll_bin_2_2_1;$(OPENCV_DIR)\..\..\include;$(BOOST_DIR);$(PTHREAD_DIR)\include;D:\Programiranje\MATLAB\Smart Mirror\C++\smart-mirror\SmartMirror;D:\Downloads\fuzzylite-5.0-win32\fuzzylite-5.0\sources\fuzzylite-5.0\fuzzylite</AdditionalIncludeDirectories>
       <AdditionalOptions>-DHAVE_STRUCT_TIMESPEC %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -149,8 +149,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;D:\Downloads\fuzzylite-5.0-win32\fuzzylite-5.0;$(BOOST_DIR)\stage\lib;$(PTHREAD_DIR)\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>pthreadVC2.lib;D:\Smart Mirror Stuff\opencv\build\x64\vc12\lib\opencv_*2412.lib;D:\Downloads\fuzzylite-5.0-win32\fuzzylite-5.0\*.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Downloads\ffll_bin_2_2_1;$(OPENCV_DIR)\lib;D:\Downloads\fuzzylite-5.0-win32\fuzzylite-5.0;$(BOOST_DIR)\stage\lib;$(PTHREAD_DIR)\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>pthreadVC2.lib;D:\Smart Mirror Stuff\opencv\build\x64\vc12\lib\opencv_*2412.lib;fuzzylite.lib;D:\Downloads\ffll_bin_2_2_1\ffllapi.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

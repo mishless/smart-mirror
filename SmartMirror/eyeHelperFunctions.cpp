@@ -1,7 +1,7 @@
 #include "eyeHelperFunctions.h"
 #include <limits.h>
 #include <float.h>
-
+#include <fstream>
 
 Mat stretchHistogram(Mat * inputImage)
 {
@@ -388,7 +388,7 @@ void getBigInterval(vector<int> inputArray, int * outputBoundary1, int * outputB
 
 	if (right.empty())
 	{
-		right[0] = sumRight.size() - 1;
+		right.push_back(sumRight.size() - 1);
 	}
 	*outputBoundary2 = right[0] + maxInd;
 }
@@ -570,7 +570,7 @@ features_t getFeatures(vector<int> leftEyeDistances, vector<int> rightEyeDistanc
 	vectorGetMax(distances, &maxVal, &maxInd);
 	vectorGetMin(distances, &minVal, &minInd);
 
-	double threshold = (minVal + maxVal) / 2.0;
+	double threshold = 0.9 * (minVal + maxVal) / 2.0;
 	vector<int> eyeClosed = ourFind(vectorTo01(distances, threshold));
 	
 	/* Percentage of eyelid closure */
@@ -613,7 +613,7 @@ features_t getFeatures(vector<int> leftEyeDistances, vector<int> rightEyeDistanc
 
 	findPeaks(&negatedDistances, &locs, &peaks, -(int)round(threshold));
 
-	features.BF = peaks.size() / ((double)distances.size() * SAMPLING_PERIOD);
+	features.BF = 60 * peaks.size() / ((double)distances.size() * SAMPLING_PERIOD);
 
 	/* Opening velocity and closing velocity */
 	int cntClosing = 0;
@@ -641,58 +641,64 @@ features_t getFeatures(vector<int> leftEyeDistances, vector<int> rightEyeDistanc
 
 	vector<int> locsBlink = locs;
 
-	for (i = 0; i < locsAll.size() - 1; i++)
+	if (locsAll.empty())
 	{
-		if ((find(locsPos.begin(), locsPos.end(), locsAll[i]) != locsPos.end()) ||
-			(find(locsNeg.begin(), locsNeg.end(), locsAll[i]) != locsNeg.end()))
-		{
-			opened = 1;
-		}
-		else
-		{
-			opened = 0;
-		}
-
-		if ((find(locsPos.begin(), locsPos.end(), locsAll[i + 1]) != locsPos.end()) ||
-			(find(locsNeg.begin(), locsNeg.end(), locsAll[i + 1]) != locsNeg.end()))
-		{
-			if (opened)
-			{
-				state = 0;
-			}
-			else
-			{
-				state = 1;
-			}
-		}
-		else
-		{
-			if (opened)
-			{
-				state = -1;
-			}
-			else
-			{
-				state = 0;
-			}
-		}
-
-		if(state == -1)
-		{
-			features.CV += abs(distances[locsAll[i]] - distances[locsAll[i+1]]) /
-				abs(locsAll[i] - locsAll[i + 1]); /* pixels/frame */
-			cntClosing++;
-		}
-		else if (state == 1)
-		{
-			features.OV += abs(distances[locsAll[i]] - distances[locsAll[i + 1]]) /
-				abs(locsAll[i] - locsAll[i + 1]); /* pixels/frame */
-			cntOpening++;
-		}
+		cout << "Jebo te bog" << endl;
 	}
+	else
+	{
+		for (i = 0; i < locsAll.size() - 1; i++)
+		{
+			if ((find(locsPos.begin(), locsPos.end(), locsAll[i]) != locsPos.end()) ||
+				(find(locsNeg.begin(), locsNeg.end(), locsAll[i]) != locsNeg.end()))
+			{
+				opened = 1;
+			}
+			else
+			{
+				opened = 0;
+			}
 
-	features.CV /= cntClosing;
-	features.OV /= cntOpening;
+			if ((find(locsPos.begin(), locsPos.end(), locsAll[i + 1]) != locsPos.end()) ||
+				(find(locsNeg.begin(), locsNeg.end(), locsAll[i + 1]) != locsNeg.end()))
+			{
+				if (opened)
+				{
+					state = 0;
+				}
+				else
+				{
+					state = 1;
+				}
+			}
+			else
+			{
+				if (opened)
+				{
+					state = -1;
+				}
+				else
+				{
+					state = 0;
+				}
+			}
+
+			if(state == -1)
+			{
+				features.CV += abs(distances[locsAll[i]] - distances[locsAll[i+1]]) /
+					abs(locsAll[i] - locsAll[i + 1]); /* pixels/frame */
+				cntClosing++;
+			}
+			else if (state == 1)
+			{
+				features.OV += abs(distances[locsAll[i]] - distances[locsAll[i + 1]]) /
+					abs(locsAll[i] - locsAll[i + 1]); /* pixels/frame */
+				cntOpening++;
+			}
+		}
+		features.CV /= cntClosing;
+		features.OV /= cntOpening;
+	}
 
 	vector<int> eyeOpened = ourFind(invert01(vectorTo01(distances, threshold)));
 	
@@ -706,6 +712,36 @@ features_t getFeatures(vector<int> leftEyeDistances, vector<int> rightEyeDistanc
 	features.AOL = ((double)AOLSum / (double)eyeOpened.size()) / maxVal;
 
 	return features;
+}
+
+void writeFeaturesToFile(features_t features, string fileName)
+{
+	ofstream outputFile;
+	outputFile.open(fileName);
+	outputFile << features.PERCLOS;
+	outputFile << features.BF;
+	outputFile << features.MCD;
+	outputFile << features.AOL;
+	outputFile << features.OV;
+	outputFile << features.CV;
+	
+	outputFile.close();
+}
+
+string getDrowsinessFromFile(string fileName)
+{
+	ifstream inputFile;
+	string drowsiness;
+
+	while (!inputFile.is_open())
+	{
+		inputFile.open(fileName);
+	}
+
+	inputFile >> drowsiness;
+
+	inputFile.close();
+	return drowsiness;
 }
 
 vector<int> invert01(vector<int> inputVector)

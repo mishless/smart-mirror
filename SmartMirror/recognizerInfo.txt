@@ -34,39 +34,3 @@ Vukan8.jpg
 Vukan9.jpg
 Vukan10.jpg
 END_ENTRY
-NEW_ENTRY
-Name: Branko Granula
-Gender: Male
-Birth: 1992
-Height: 181
-Weight: 70;
-Pictures:
-Branko1.jpg
-Branko2.jpg
-Branko3.jpg
-Branko4.jpg
-Branko5.jpg
-Branko6.jpg
-Branko7.jpg
-Branko8.jpg
-Branko9.jpg
-Branko10.jpg
-END_ENTRY
-NEW_ENTRY
-Name: Kolja Dobrovoljski
-Gender: Male
-Birth: 1991
-Height: 192
-Weight: 87;
-Pictures:
-Kolja1.jpg
-Kolja2.jpg
-Kolja3.jpg
-Kolja4.jpg
-Kolja5.jpg
-Kolja6.jpg
-Kolja7.jpg
-Kolja8.jpg
-Kolja9.jpg
-Kolja10.jpg
-END_ENTRY

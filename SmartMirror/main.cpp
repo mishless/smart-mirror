@@ -11,6 +11,12 @@ using namespace cv;
 using namespace OpenNN;
 
 bool isBPDone = false;
+bool isDrowsinessDone = false;
+bool isMaxFound = false;
+
+vector<int> distancesLeft;
+vector<int> distancesRight;
+
 
 void *extractParameters(void *buffers) {
 	
@@ -26,7 +32,6 @@ void *extractParameters(void *buffers) {
 	RRDetector.initialize(RR_LOW_FREQ, RR_HIGH_FREQ);
 
 	PhaseDetector phaseDetector;
-
 	Mat forehead, foreheadConverted;
 	double maxFrequencyHB, maxFrequencyRR, heartBeat;
 	double respRate;
@@ -44,12 +49,15 @@ void *extractParameters(void *buffers) {
 	Mat palm;
 	BloodPressure_t bloodPressure;
 	string bloodPressureString;
+	string drowsiness;
 
 	BPNeuralNetwork bpnn(4, 6, 3);
 	vector<double> input(4);
 	vector<double> output;
 
 	bpnn.load("savedNeuralNetwork.ann");
+
+	features_t features;
 
 	while (1)
 	{
@@ -97,6 +105,7 @@ void *extractParameters(void *buffers) {
 			{
 				PTTMean = PTTTotal / cnt;
 				/* TODO fill data from person info */
+
 				input[0] = 185;
 				input[1] = 85;
 				input[2] = PTTMean;
@@ -122,7 +131,16 @@ void *extractParameters(void *buffers) {
 			}
 		}
 
-
+		if (!isDrowsinessDone)
+		{
+			if (distancesLeft.size() * SAMPLING_PERIOD > DROWSINESS_PERIOD)
+			{
+				features = getFeatures(distancesLeft, distancesRight);
+				writeFeaturesToFile(features, "features.txt");
+				drowsiness = getDrowsinessFromFile("drowsiness.txt");
+				isDrowsinessDone = true;
+			}
+		}
 		cout << "Heartbeat: " << HBMean << endl;
 		cout << "Inter-beat interval: " << ibi << endl;
 		cout << "Respiration rate: " << RRMean << endl;
@@ -133,6 +151,15 @@ void *extractParameters(void *buffers) {
 		else
 		{
 			cout << "Blood Pressure: " << bloodPressureString << endl;
+		}
+
+		if (!isDrowsinessDone)
+		{
+			cout << "Drowsiness state: Determining..." << endl;
+		}
+		else
+		{
+			cout << "Drowsiness state: " << drowsiness << endl;
 		}
 		cout << "*************************" << endl;
 
@@ -159,6 +186,9 @@ void *trackAndDetect(void *buffers) {
 	long long int timeStamp;
 	PersonInfo personInfo;
 	bool isRecognized = false;
+	int leftEyeMax = 0;
+	int rightEyeMax = 0;
+	int eyesCnt = 0;
 
 	/* Forehead rectange,
 	   Will be used to extract forehead from the face */
@@ -174,7 +204,7 @@ void *trackAndDetect(void *buffers) {
 
 	Recognizer recognizer;
 	recognizer.initialize(RECOGNITION_TRESHOLD);
-	if (!recognizer.train("info.txt", "Database"))
+	if (!recognizer.train("recognizerInfo.txt", "Database"))
 	{
 		cout << "Training recognizer failed!" << endl;
 		while (1);
@@ -196,7 +226,6 @@ void *trackAndDetect(void *buffers) {
 		while (1);
 	}
 
-	int i = 28*5*5;
 	while (true) {
 
 		/* If there are no new frames, continue */
@@ -227,8 +256,7 @@ void *trackAndDetect(void *buffers) {
 			if (!isRecognized)
 			{
 				if (!recognizer.recognize(grayFace, &personInfo))
-					//cout << "Unknown Person" << endl;
-					;
+					cout << "Unknown Person" << endl;
 				else
 				{
 					cout << "Found " << personInfo.fullName << endl;
@@ -238,23 +266,46 @@ void *trackAndDetect(void *buffers) {
 
 
 			/* Find eyes */
-			if (eyesHunter.hunt(&face, &eyes))
+			if (!isDrowsinessDone)
 			{
-				/* Add eyes to the eyes buffer */
-				eyesBuffer->push_back(new Frame(eyes, timeStamp));
-				if (++i % 28*5 == 0)
+				if (eyesHunter.hunt(&face, &eyes))
 				{
-					string name = "Eyes", extension = ".jpg";
-					string number = to_string(i / 28*5);
-					char path[100];
-					strcpy(path, (name + number + extension).c_str());
-					imwrite(path, eyes);
-					cout << "Saved image " << path << endl;
+					if (!isMaxFound)
+					{
+						int dL, dR;
+						eyelidsDistances(eyes, &dL, &dR);
+						//cout << "dl = " << dL << endl;
+						//cout << "dr = " << dR << endl;
+						if (dL > leftEyeMax)
+						{
+							leftEyeMax = dL;
+						}
+						if (dR > rightEyeMax)
+						{
+							rightEyeMax = dR;
+						}
+						eyesCnt++;
+						if (eyesCnt * SAMPLING_PERIOD > EYE_RECORDING_MAX)
+						{
+							isMaxFound = true;
+						}
+					}
+					else
+					{
+						int dL;
+						int dR;
+
+						eyelidsDistances(eyes, &dL, &dR, leftEyeMax, rightEyeMax);
+
+						/* Add distances to the distances buffer */
+						distancesLeft.push_back(dL);
+						distancesRight.push_back(dR);
+					}
 				}
-			}
-			else
-			{
-				cout << "IMA LICA ALI NE I OCIJU!" << endl;
+				else
+				{
+					cout << "No eyes found on face!" << endl;
+				}
 			}
 
 			/* Find hand */
@@ -264,6 +315,10 @@ void *trackAndDetect(void *buffers) {
 				{
 					foreheadBuffer->push_back(new Frame(face(foreheadRect), timeStamp));
 					palmBuffer->push_back(new Frame(hand(palmRect), timeStamp));
+				}
+				else
+				{
+					cout << "Hand not found!" << endl;
 				}
 			}
 			else
@@ -295,7 +350,7 @@ void *collectFrames(void *frameBuffer) {
 	try {
 		vc.open(0);
 	}
-	catch (Exception e) {
+	catch (cv::Exception e) {
 		/* If unsuccessful, exit */
 
 		cout << "Opening camera failed!" << endl;
@@ -370,12 +425,12 @@ void probaj()
 
 int main(int argc, char* argv[])
 {
-	//probaj();
-
+	NeuralNetwork nn;
 	FrameBuffer rawFramesBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer foreheadBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer eyesBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer handsBuffer{ MAX_BUFFER_SIZE };
+
 
 	FrameBuffer* buffers[4]{ &rawFramesBuffer , &foreheadBuffer,
 		                     &eyesBuffer, &handsBuffer };
@@ -384,7 +439,7 @@ int main(int argc, char* argv[])
 	Thread extractParametersThread;
 	pthread_create(&frameBufferThread, NULL, collectFrames, &rawFramesBuffer);
 	pthread_create(&detectAndTrackThread, NULL, trackAndDetect, &buffers);
-	//pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
+	pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
 	
 	pthread_join(frameBufferThread, NULL);
 	return 0;

@@ -12,6 +12,7 @@
 #include <vector>
 #include "main.h"
 #include <limits.h>
+#include <string>
 
 #define FIND_LAST 0
 #define FIND_FIRST 1
@@ -52,4 +53,6 @@ typedef struct
 } features_t;
 
 features_t getFeatures(vector<int> leftEyeDistances, vector<int> rightEyeDistances);
+void writeFeaturesToFile(features_t features, string fileName);
+string getDrowsinessFromFile(string fileName);
 #endif
