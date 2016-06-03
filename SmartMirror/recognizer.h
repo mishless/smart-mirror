@@ -16,30 +16,42 @@
 using namespace std;
 using namespace cv;
 
+extern char* databaseLocation;
+
 enum Gender {
 	MALE,
 	FEMALE,
 	UNKNOWN
 };
 
+typedef struct {
+	string title;
+	string recurrency;
+	string day;
+	string date;
+	string description;
+} Reminder;
+
 typedef struct
 {
+	string username;
 	string fullName;
 	unsigned int height;
 	unsigned int weight;
 	Gender gender;
 	int yearOfBirth;
+	vector<Reminder> reminders;
 } PersonInfo;
 
 
 class Recognizer {
 private:
 	Ptr<FaceRecognizer> model;
-	vector<PersonInfo> database;
 public:
 	void initialize(double threshold);
 	bool train(string fileInfo, string databaseFolder);
 	bool recognize(Mat image, PersonInfo *outputPersonInfo);
+	vector<PersonInfo> database;
 };
 
 

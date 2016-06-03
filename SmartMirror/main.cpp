@@ -3,6 +3,7 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/contrib/contrib.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include <sqlite3.h>
 #include <math.h>
 #include "eyeHelperFunctions.h"
 
@@ -17,6 +18,7 @@ bool isMaxFound = false;
 vector<int> distancesLeft;
 vector<int> distancesRight;
 
+char* databaseLocation;
 
 void *extractParameters(void *buffers) {
 	
@@ -172,7 +174,6 @@ void *extractParameters(void *buffers) {
 }
 
 void *trackAndDetect(void *buffers) {
-
 	/* Here goes the code that gets a frame and tracks/detects
 	   This will be executed by another thread */
 
@@ -261,6 +262,10 @@ void *trackAndDetect(void *buffers) {
 				{
 					cout << "Found " << personInfo.fullName << endl;
 					isRecognized = true;
+					/* Show reminders */
+					for (int i = 0; i < personInfo.reminders.size(); i++) {
+						cout << "Reminder: " << personInfo.reminders[i].title << " " << personInfo.reminders[i].description << endl;
+					}
 				}
 			}
 
@@ -426,6 +431,13 @@ void probaj()
 int main(int argc, char* argv[])
 {
 	NeuralNetwork nn;
+	if (argv[1] == NULL) {
+		cout << "The database location needs to be specified." << endl;
+		system("pause");
+		exit(0);
+	} else {
+		databaseLocation = argv[1];
+	}
 	FrameBuffer rawFramesBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer foreheadBuffer{ MAX_BUFFER_SIZE };
 	FrameBuffer eyesBuffer{ MAX_BUFFER_SIZE };
@@ -440,7 +452,7 @@ int main(int argc, char* argv[])
 	pthread_create(&frameBufferThread, NULL, collectFrames, &rawFramesBuffer);
 	pthread_create(&detectAndTrackThread, NULL, trackAndDetect, &buffers);
 	pthread_create(&extractParametersThread, NULL, extractParameters, &buffers);
-	
+
 	pthread_join(frameBufferThread, NULL);
 	return 0;
 }
